@@ -6,7 +6,7 @@
 旧 TXT/复制按钮使用另一套格式，不能直接送入这里的解析器。
 全国选站目录不代表所有线路已通过本项目地图寻路验证。
 
-让 WorkBuddy 接手：[执行流程](docs/WORKBUDDY.md)、[可复制提示词](docs/WORKBUDDY_PROMPT.md)。
+AI 助手交接：[执行流程](docs/WORKFLOW.md)、[可复制提示词](docs/ASSISTANT_PROMPT.md)。
 准备上传仓库：[GitHub 文件清单](docs/GITHUB_UPLOAD.md)。助手入口为根目录 AGENTS.md。
 个人行程、地图缓存与视频默认不进入版本控制。
 

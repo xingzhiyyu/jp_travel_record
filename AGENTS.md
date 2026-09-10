@@ -1,6 +1,6 @@
 # 给接手此仓库的编程助手
 
-先读 README.md、docs/WORKBUDDY.md。当前项目包含两个独立组件：
+先读 README.md、docs/WORKFLOW.md。当前项目包含两个独立组件：
 `生成器/` 是静态行程编辑器；`travel_record/` 是 Python 地图视频渲染器。
 
 ## 执行约定

@@ -1,6 +1,6 @@
-# 可直接复制给 WorkBuddy
+# 可直接复制给 AI 助手的提示词
 
-你在一个旅行地图视频项目根目录工作。请先完整阅读 AGENTS.md、README.md、docs/WORKBUDDY.md，
+你在一个旅行地图视频项目根目录工作。请先完整阅读 AGENTS.md、README.md、docs/WORKFLOW.md，
 再检查实际代码和命令帮助，按现有能力执行，不要虚构参数或默认旧聊天中的建议已实现。
 
 我的输入是 record.txt，可能来自“生成器/”里的导出，也可能是手写的旅行记录。
