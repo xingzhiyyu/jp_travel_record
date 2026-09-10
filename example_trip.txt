@@ -1,0 +1,20 @@
+# 一行就是一段轨迹；同一行可以写多个途经点。
+title: 京阪东京旅行记录
+size: 1280x720
+fps: 24
+seconds_per_leg: 2.6
+max_zoom_levels_per_second: 0.9
+waypoint_pause_seconds: 0.55
+ending_overview: true
+ending_overview_seconds: 7
+end_hold_seconds: 1.2
+basemap: silhouette
+locale: en
+
+route:
+2026-04-12 08:00 | JR Kyoto Line | Osaka -> Shin-Osaka
+2026-04-12 08:20 | Tokaido Shinkansen | Shin-Osaka -> Tokyo
+2026-04-12 11:10 | JR Yamanote Line | Tokyo -> Shimbashi
+2026-04-12 11:25 | Tokyo Metro Ginza Line | Shimbashi -> Asakusa
+2026-04-12 12:15 | bus | Asakusa -> Tokyo Skytree
+2026-04-12 14:00 | walk | Tokyo Skytree -> Oshiage

@@ -1,0 +1,508 @@
+{
+  "places": [
+    {
+      "name": "Beijing Capital International Airport",
+      "aliases": ["PEK", "Beijing Capital Airport", "北京首都国际机场", "北京首都机场", "首都机场"],
+      "lat": 40.0799,
+      "lon": 116.6031,
+      "kind": "airport"
+    },
+    {
+      "name": "Tokyo Haneda Airport",
+      "aliases": ["HND", "Haneda Airport", "东京羽田机场", "東京国際空港", "羽田空港"],
+      "lat": 35.5494,
+      "lon": 139.7798,
+      "kind": "airport"
+    },
+    {
+      "name": "Tokyo Skytree",
+      "aliases": ["东京晴空塔", "東京スカイツリー", "Tokyo Sky Tree"],
+      "lat": 35.710063,
+      "lon": 139.8107,
+      "kind": "landmark"
+    },
+    {
+      "name": "Asakusa",
+      "aliases": ["Asakusa Station", "浅草", "浅草駅"],
+      "lat": 35.710733,
+      "lon": 139.797592,
+      "kind": "station"
+    },
+    {
+      "name": "Kobe University",
+      "aliases": ["Kobe University Rokkodai Campus", "神戸大学", "神户大学"],
+      "lat": 34.72663,
+      "lon": 135.23547,
+      "kind": "landmark"
+    },
+    {
+      "name": "Higobashi",
+      "aliases": ["Higobashi Station", "肥後橋"],
+      "lat": 34.6914959,
+      "lon": 135.4963388,
+      "kind": "station"
+    },
+    {
+      "name": "Hommachi",
+      "aliases": ["Hommachi Station", "本町"],
+      "lat": 34.6815,
+      "lon": 135.4989,
+      "kind": "station"
+    },
+    {
+      "name": "National Museum of Art Osaka",
+      "aliases": ["National Museum of Art, Osaka", "国立国際美術館"],
+      "lat": 34.6916929,
+      "lon": 135.492151,
+      "kind": "landmark"
+    },
+    {
+      "name": "HEP FIVE",
+      "aliases": ["HEPFIVE"],
+      "lat": 34.7040592,
+      "lon": 135.500379,
+      "kind": "landmark"
+    },
+    {
+      "name": "Kitahama",
+      "aliases": ["Keihan Kitahama Station", "北浜"],
+      "lat": 34.691505,
+      "lon": 135.5075836,
+      "kind": "station"
+    },
+    {
+      "name": "Keihan Sanjo Station",
+      "aliases": ["Sanjo", "京阪三条駅", "三条"],
+      "lat": 35.0085903,
+      "lon": 135.7725593,
+      "kind": "station"
+    },
+    {
+      "name": "Fushimi-Inari Station",
+      "aliases": ["Fushimi-Inari", "伏見稲荷"],
+      "lat": 34.9688922,
+      "lon": 135.7692574,
+      "kind": "station"
+    },
+    {
+      "name": "Gion-Shijo Station",
+      "aliases": ["Gion-Shijo", "祇園四条"],
+      "lat": 35.0026903,
+      "lon": 135.7715998,
+      "kind": "station"
+    },
+    {
+      "name": "Demachiyanagi",
+      "aliases": ["Demachiyanagi Station", "出町柳"],
+      "lat": 35.0300014,
+      "lon": 135.7727334,
+      "kind": "station"
+    },
+    {
+      "name": "Takaragaike",
+      "aliases": ["Takaragaike Station", "宝ヶ池"],
+      "lat": 35.0581761,
+      "lon": 135.7923442,
+      "kind": "station"
+    },
+    {
+      "name": "Kibuneguchi",
+      "aliases": ["Kibuneguchi Station", "貴船口"],
+      "lat": 35.1059638,
+      "lon": 135.7637198,
+      "kind": "station"
+    },
+    {
+      "name": "Kifune Shrine",
+      "aliases": ["貴船神社"],
+      "lat": 35.1218892,
+      "lon": 135.7629362,
+      "kind": "landmark"
+    },
+    {
+      "name": "Kintetsu-Nara",
+      "aliases": ["Kintetsu Nara Station", "近鉄奈良"],
+      "lat": 34.6849624,
+      "lon": 135.8260516,
+      "kind": "station"
+    },
+    {
+      "name": "Nara National Museum",
+      "aliases": ["奈良国立博物館"],
+      "lat": 34.6830955,
+      "lon": 135.8383105,
+      "kind": "landmark"
+    },
+    {
+      "name": "Todai-ji",
+      "aliases": ["東大寺"],
+      "lat": 34.6882437,
+      "lon": 135.8397568,
+      "kind": "landmark"
+    },
+    {
+      "name": "Himuro Shrine",
+      "aliases": ["氷室神社"],
+      "lat": 34.6843088,
+      "lon": 135.837848,
+      "kind": "landmark"
+    },
+    {
+      "name": "Kencho-higashi",
+      "aliases": ["県庁東", "县厅东"],
+      "lat": 34.6843049,
+      "lon": 135.8351239,
+      "kind": "bus_stop"
+    },
+    {
+      "name": "JR Nara Station",
+      "aliases": ["Nara", "JR奈良駅", "JR 奈良駅前"],
+      "lat": 34.6819907,
+      "lon": 135.8206013,
+      "kind": "station"
+    },
+    {
+      "name": "JR Uji Station",
+      "aliases": ["JR宇治駅"],
+      "lat": 34.8904111,
+      "lon": 135.8007079,
+      "kind": "station"
+    },
+    {
+      "name": "Byodoin",
+      "aliases": ["平等院"],
+      "lat": 34.8909939,
+      "lon": 135.8065226,
+      "kind": "landmark"
+    },
+    {
+      "name": "Keihan Uji Station",
+      "aliases": ["京阪宇治駅", "京阪宇治"],
+      "lat": 34.8945245,
+      "lon": 135.8062787,
+      "kind": "station"
+    },
+    {
+      "name": "Uji High School",
+      "aliases": ["京都府立莵道高等学校", "莵道高校"],
+      "lat": 34.9002,
+      "lon": 135.8151,
+      "kind": "landmark"
+    },
+    {
+      "name": "Ujigami Shrine",
+      "aliases": ["宇治上神社"],
+      "lat": 34.8920528,
+      "lon": 135.8114573,
+      "kind": "landmark"
+    },
+    {
+      "name": "Daikichiyama Observatory",
+      "aliases": ["大吉山展望台"],
+      "lat": 34.8929378,
+      "lon": 135.8129342,
+      "kind": "landmark"
+    },
+    {
+      "name": "Oshiage",
+      "aliases": ["Oshiage Station", "押上", "押上駅"],
+      "lat": 35.710167,
+      "lon": 139.812333,
+      "kind": "station"
+    },
+    {
+      "name": "Don Quijote Dotonbori",
+      "aliases": ["唐吉诃德道顿堀店", "ドン・キホーテ道頓堀店"],
+      "lat": 34.66918,
+      "lon": 135.50136,
+      "kind": "landmark"
+    },
+    {
+      "name": "Hozenji Temple",
+      "aliases": ["法善寺"],
+      "lat": 34.6678494,
+      "lon": 135.5026027,
+      "kind": "landmark"
+    },
+    {
+      "name": "Pontocho Park",
+      "aliases": ["先斗町公园", "先斗町公園"],
+      "lat": 35.00644,
+      "lon": 135.7712221,
+      "kind": "landmark"
+    },
+    {
+      "name": "Sannenzaka",
+      "aliases": ["三年阪", "三年坂", "産寧坂"],
+      "lat": 34.9983625,
+      "lon": 135.7791596,
+      "kind": "landmark"
+    },
+    {
+      "name": "Togetsukyo Bridge",
+      "aliases": ["渡月桥", "渡月橋"],
+      "lat": 35.0128713,
+      "lon": 135.6777623,
+      "kind": "landmark"
+    },
+    {
+      "name": "Gioji Temple",
+      "aliases": ["祇王寺"],
+      "lat": 35.0235169,
+      "lon": 135.6668006,
+      "kind": "landmark"
+    },
+    {
+      "name": "Otagi Nenbutsuji Temple",
+      "aliases": ["爱宕念佛寺", "愛宕念仏寺"],
+      "lat": 35.0311595,
+      "lon": 135.6612344,
+      "kind": "landmark"
+    },
+    {
+      "name": "Tsukiji 7-chome",
+      "aliases": ["筑地七丁目", "築地七丁目"],
+      "lat": 35.6651829,
+      "lon": 139.7758904,
+      "kind": "bus_stop"
+    },
+    {
+      "name": "Enoshima",
+      "aliases": ["Enoshima Station", "江ノ島", "江ノ島駅", "江之岛站"],
+      "lat": 35.3110438,
+      "lon": 139.4875422,
+      "kind": "station"
+    },
+    {
+      "name": "Enoshima Bus Stop",
+      "aliases": ["江之岛公交站", "江ノ島バス停"],
+      "lat": 35.3023138,
+      "lon": 139.4815583,
+      "kind": "bus_stop"
+    },
+    {
+      "name": "Blue Bottle Coffee Kiyosumi",
+      "aliases": ["bluebottle", "清澄白河フラッグシップカフェ"],
+      "lat": 35.67875,
+      "lon": 139.80084,
+      "kind": "landmark"
+    },
+    {
+      "name": "Janpara Akihabara Main Store",
+      "aliases": ["janpara秋叶原本店", "じゃんぱら秋葉原本店"],
+      "lat": 35.70183,
+      "lon": 139.77154,
+      "kind": "landmark"
+    },
+    {
+      "name": "Janpara Akihabara 5th Store",
+      "aliases": ["janpara秋叶原5号店", "じゃんぱら秋葉原5号店"],
+      "lat": 35.70237,
+      "lon": 139.77045,
+      "kind": "landmark"
+    },
+    {
+      "name": "Janpara Akihabara 3rd Store",
+      "aliases": ["janpara秋叶原3号店", "じゃんぱら秋葉原3号店"],
+      "lat": 35.70089,
+      "lon": 139.76953,
+      "kind": "landmark"
+    },
+    {
+      "name": "Ikebukuro Station West Exit",
+      "aliases": ["池袋站西口", "池袋駅西口"],
+      "lat": 35.7311713,
+      "lon": 139.7087046,
+      "kind": "station"
+    },
+    {
+      "name": "ABC-Mart Shibuya",
+      "aliases": ["abcmart shibuya", "ABC-MART渋谷店"],
+      "lat": 35.66037,
+      "lon": 139.69830,
+      "kind": "landmark"
+    },
+    {
+      "name": "Kyoto-Kawaramachi",
+      "aliases": ["京都河原町", "京都河原町駅"],
+      "lat": 35.0037633,
+      "lon": 135.769608,
+      "kind": "station"
+    },
+    {
+      "name": "Saiin",
+      "aliases": ["西院", "西院駅"],
+      "lat": 35.0035662,
+      "lon": 135.7317659,
+      "kind": "station"
+    },
+    {
+      "name": "Arashiyama",
+      "aliases": ["嵐山", "嵐山駅"],
+      "lat": 35.0151806,
+      "lon": 135.6777199,
+      "kind": "station"
+    },
+    {
+      "name": "Kyoto Station",
+      "aliases": ["Kyoto", "京都", "京都駅"],
+      "lat": 34.985849,
+      "lon": 135.758767,
+      "kind": "station"
+    },
+    {
+      "name": "Tokyo Station",
+      "aliases": ["Tokyo", "東京", "東京駅"],
+      "lat": 35.6818017,
+      "lon": 139.764981,
+      "kind": "station"
+    },
+    {
+      "name": "Yokohama Station",
+      "aliases": ["Yokohama", "横浜", "横浜駅"],
+      "lat": 35.466188,
+      "lon": 139.622715,
+      "kind": "station"
+    },
+    {
+      "name": "Naka-meguro",
+      "aliases": ["中目黒", "中目黒駅"],
+      "lat": 35.644085,
+      "lon": 139.6989507,
+      "kind": "station"
+    },
+    {
+      "name": "Higashi-Ginza",
+      "aliases": ["東銀座", "東銀座駅"],
+      "lat": 35.6698939,
+      "lon": 139.7671628,
+      "kind": "station"
+    },
+    {
+      "name": "Kamikitazawa",
+      "aliases": ["上北沢", "上北沢駅"],
+      "lat": 35.6736533,
+      "lon": 139.6166282,
+      "kind": "station"
+    },
+    {
+      "name": "Meidaimae",
+      "aliases": ["明大前", "明大前駅"],
+      "lat": 35.6684337,
+      "lon": 139.6504275,
+      "kind": "station"
+    },
+    {
+      "name": "Toyosu",
+      "aliases": ["豊洲", "豊洲駅"],
+      "lat": 35.6501423,
+      "lon": 139.7931179,
+      "kind": "station"
+    },
+    {
+      "name": "Shinagawa",
+      "aliases": ["品川", "品川駅"],
+      "lat": 35.6284713,
+      "lon": 139.7387597,
+      "kind": "station"
+    },
+    {
+      "name": "Ofuna",
+      "aliases": ["大船", "大船駅"],
+      "lat": 35.3543127,
+      "lon": 139.5314119,
+      "kind": "station"
+    },
+    {
+      "name": "Tsurumi",
+      "aliases": ["鶴見", "鶴見駅"],
+      "lat": 35.5083148,
+      "lon": 139.675976,
+      "kind": "station"
+    },
+    {
+      "name": "Umi-Shibaura",
+      "aliases": ["海芝浦", "海芝浦駅"],
+      "lat": 35.485904,
+      "lon": 139.700285,
+      "kind": "station"
+    },
+    {
+      "name": "Daimon",
+      "aliases": ["大門", "大門駅"],
+      "lat": 35.6566579,
+      "lon": 139.7553828,
+      "kind": "station"
+    },
+    {
+      "name": "Asakusabashi",
+      "aliases": ["浅草橋", "浅草橋駅"],
+      "lat": 35.6973915,
+      "lon": 139.7863101,
+      "kind": "station"
+    },
+    {
+      "name": "Ochanomizu",
+      "aliases": ["御茶ノ水", "御茶ノ水駅"],
+      "lat": 35.7005574,
+      "lon": 139.7640727,
+      "kind": "station"
+    },
+    {
+      "name": "Haneda Airport Terminal 3",
+      "aliases": ["羽田空港第3ターミナル", "羽田空港第３ターミナル"],
+      "lat": 35.5450118,
+      "lon": 139.7670385,
+      "kind": "airport"
+    },
+    {
+      "name": "Shibuya Scramble Square",
+      "aliases": ["shibuya scramble square", "渋谷スクランブルスクエア"],
+      "lat": 35.6583792,
+      "lon": 139.7022161,
+      "kind": "landmark"
+    },
+    {
+      "name": "MEGA Don Quijote Shibuya",
+      "aliases": ["mega don quijote", "MEGAドン・キホーテ渋谷本店"],
+      "lat": 35.6604474,
+      "lon": 139.6978406,
+      "kind": "landmark"
+    },
+    {
+      "name": "Shibuya 109",
+      "aliases": ["shibuya 109", "SHIBUYA109"],
+      "lat": 35.6596004,
+      "lon": 139.6986799,
+      "kind": "landmark"
+    },
+    {
+      "name": "Shibuya Loft",
+      "aliases": ["shibuya loft", "渋谷ロフト"],
+      "lat": 35.6610005,
+      "lon": 139.6995327,
+      "kind": "landmark"
+    },
+    {
+      "name": "Takeshita Street",
+      "aliases": ["竹下通", "竹下通り"],
+      "lat": 35.6711612,
+      "lon": 139.7049553,
+      "kind": "landmark"
+    },
+    {
+      "name": "Monorail Hamamatsucho",
+      "aliases": ["モノレール浜松町", "モノレール浜松町駅"],
+      "lat": 35.6554012,
+      "lon": 139.7567283,
+      "kind": "station"
+    },
+    {
+      "name": "Akashi Kaikyo Bridge",
+      "aliases": ["明石海峡大桥", "明石海峡大橋", "舞子海上プロムナード"],
+      "lat": 34.6311375,
+      "lon": 135.0330303,
+      "kind": "landmark"
+    }
+  ]
+}

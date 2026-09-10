@@ -1,0 +1,5 @@
+title: 关西机场到新今宫
+locale: zh-CN
+
+route:
+{kansai-airport-line,kansai airport,hineno;hanwa-line,hineno,tennoji;osaka-loop-line,tennoji,shin-imamiya}

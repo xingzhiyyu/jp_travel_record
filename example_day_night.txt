@@ -1,0 +1,15 @@
+# 日夜切换演示，不表示 record.txt 的真实旅行时间。
+title: Day to Night
+size: 1280x720
+fps: 60
+theme: day
+theme_transition_seconds: 1.5
+basemap: silhouette
+seconds_per_leg: 4
+waypoint_pause_seconds: 0.55
+ending_overview_seconds: 3
+end_hold_seconds: 1
+route:
+{Osaka Metro Chuo Line,Sakaisuji-Hommachi,Hommachi,day}
+{Osaka Metro Midosuji Line,Hommachi,Umeda,night}
+{Osaka Metro Midosuji Line,Umeda,Hommachi}

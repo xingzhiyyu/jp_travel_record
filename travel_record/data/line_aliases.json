@@ -1,0 +1,304 @@
+{
+  "lines": [
+    {
+      "canonical": "Tokaido Shinkansen",
+      "aliases": ["JR Tokaido Shinkansen", "Tōkaidō Shinkansen", "東海道新幹線", "东海道新干线"],
+      "color": "#0072BC",
+      "relations": [5263977]
+    },
+    {
+      "canonical": "JR Kyoto Line",
+      "aliases": ["JR京都線", "JR东海道本线普通", "JR東海道本線普通"],
+      "color": "#007AC2",
+      "relations": [11808753, 11808754, 11830271, 11830285]
+    },
+    {
+      "canonical": "JR Kobe Line",
+      "aliases": ["JR神戸線", "JR神户线"],
+      "color": "#007AC2",
+      "relations": [11808751, 11808752, 15640454, 15640455, 15640456, 15640457]
+    },
+    {
+      "canonical": "Kansai Airport Line",
+      "aliases": ["JR Kansai Airport Line", "JR関西空港線", "関西空港線", "JR关西机场线"],
+      "color": "#0072BC",
+      "relations": [1868626, 11232175, 11232176]
+    },
+    {
+      "canonical": "JR Hanwa Line",
+      "aliases": ["Hanwa Line", "JR阪和線", "阪和線", "JR阪和线"],
+      "color": "#F58220",
+      "relations": [1868625]
+    },
+    {
+      "canonical": "Osaka Loop Line",
+      "aliases": ["JR Osaka Loop Line", "JR大阪環状線", "大阪環状線", "大阪环状线"],
+      "color": "#E80000",
+      "relations": [1864758]
+    },
+    {
+      "canonical": "Kansai Airport Rapid",
+      "aliases": ["Kanku Rapid", "関空快速", "关空快速"],
+      "color": "#0072BC",
+      "relations": [18630327, 18630328, 18627480, 18627478]
+    },
+    {
+      "canonical": "Osaka Metro Sakaisuji Line",
+      "aliases": ["Osaka Metro堺筋線", "Sakaisuji Line", "大阪地铁堺筋线"],
+      "color": "#814721",
+      "relations": [8028830, 444905]
+    },
+    {
+      "canonical": "Osaka Metro Chuo Line",
+      "aliases": ["Osaka Metro中央線", "Chuo Line", "Osaka Metro Chūō Line", "大阪地铁中央线"],
+      "color": "#019A66",
+      "relations": [8028818, 444881]
+    },
+    {
+      "canonical": "Osaka Metro Midosuji Line",
+      "aliases": ["Osaka Metro御堂筋線", "Midosuji Line", "大阪地铁御堂筋线"],
+      "color": "#E5171F",
+      "relations": [2411153, 8028808]
+    },
+    {
+      "canonical": "Osaka Metro Yotsubashi Line",
+      "aliases": ["Yotsubashi Line", "大阪メトロ四つ橋線", "大阪市営地下鉄四つ橋線", "大阪四つ橋線"],
+      "color": "#0079BA",
+      "relations": [8028853]
+    },
+    {
+      "canonical": "Osaka Metro Nagahori Tsurumi-Ryokuchi Line",
+      "aliases": ["Osaka Metro長堀鶴見緑地線", "Nagahori Tsurumi Ryokuchi Line", "大阪地铁长堀鹤见绿地线"],
+      "color": "#A9CC51",
+      "relations": [8028831, 444878]
+    },
+    {
+      "canonical": "Osaka Metro Sennichimae Line",
+      "aliases": ["Osaka Metro千日前線", "Sennichimae Line", "大阪地铁千日前线"],
+      "color": "#E44D93",
+      "relations": [8028803, 444891]
+    },
+    {
+      "canonical": "Hankyu Kobe Kosoku Line",
+      "aliases": ["Hankyu Kobe Kousoku Line", "阪急神戸高速線", "阪急电铁神户高速线"],
+      "color": "#007ac4",
+      "relations": [11981765, 11981766]
+    },
+    {
+      "canonical": "Hankyu Kobe Line",
+      "aliases": ["Hankyu Kobe Main Line", "阪急神戸本線", "阪急神戸線", "阪急神户线"],
+      "color": "#0d6fb8",
+      "relations": [11966498, 11966252]
+    },
+    {
+      "canonical": "Tokyo Metro Ginza Line",
+      "aliases": ["Ginza Line", "東京メトロ銀座線", "东京地铁银座线", "銀座線"],
+      "color": "#FF9500",
+      "relations": [443281, 8026074]
+    },
+    {
+      "canonical": "Kyoto Municipal Subway Tozai Line",
+      "aliases": ["Kyoto Municipal Tozai Line", "Tōzai Line", "京都市営地下鉄東西線", "京都市东西线", "京都市東西線"],
+      "color": "#FF4500",
+      "relations": [536803]
+    },
+    {
+      "canonical": "Kyoto Municipal Subway Karasuma Line",
+      "aliases": ["Kyoto Municipal Karasuma Line", "Karasuma Line", "京都市営地下鉄烏丸線", "京都市乌丸线", "京都市烏丸線"],
+      "color": "#3CB371",
+      "relations": [536800]
+    },
+    {
+      "canonical": "Kintetsu Kyoto Line",
+      "aliases": ["近鉄京都線", "近畿日本鉄道京都線"],
+      "color": "#B53A60",
+      "relations": [1860852]
+    },
+    {
+      "canonical": "JR Nara Line",
+      "aliases": ["Nara Line", "JR奈良線", "奈良線"],
+      "color": "#B67C2B",
+      "relations": [11370565]
+    },
+    {
+      "canonical": "Kintetsu Nara Line",
+      "aliases": ["近鉄奈良線", "近畿日本鉄道奈良線"],
+      "color": "#B53A60",
+      "relations": [1864805]
+    },
+    {
+      "canonical": "Keihan Uji Line",
+      "aliases": ["京阪宇治線", "京阪電気鉄道宇治線"],
+      "color": "#4A9F6E",
+      "relations": [1921070]
+    },
+    {
+      "canonical": "Eizan Electric Railway Kurama Line",
+      "aliases": ["Kurama Line", "叡山電鉄鞍馬線", "叡山电铁鞍马线"],
+      "color": "#FF0000",
+      "relations": [1921072]
+    },
+    {
+      "canonical": "JR Yamanote Line",
+      "aliases": ["Yamanote Line", "JR山手線", "山手線", "山手线"],
+      "color": "#B1CB39",
+      "relations": [1972920, 1972960]
+    },
+    {
+      "canonical": "Hankyu Kyoto Main Line",
+      "aliases": ["阪急京都本線", "Hankyū Kyoto Main Line"],
+      "color": "#21AB36",
+      "relations": [10255877, 10255878]
+    },
+    {
+      "canonical": "Keifuku Arashiyama Line",
+      "aliases": ["京福嵐山線", "京福電気鉄道嵐山本線", "Randen Arashiyama Line"],
+      "color": "#B8193F",
+      "relations": [17580262, 17580263]
+    },
+    {
+      "canonical": "JR Sanin Main Line",
+      "aliases": ["JR山陰本線", "JR Sagano Line", "嵯峨野線"],
+      "color": "#7A5AA6",
+      "relations": [10154357, 10154358]
+    },
+    {
+      "canonical": "Tokyo Metro Hibiya Line",
+      "aliases": ["東京メトロ日比谷線", "日比谷線"],
+      "color": "#B5B5AC",
+      "relations": [443272, 8026155]
+    },
+    {
+      "canonical": "Toei Asakusa Line",
+      "aliases": ["都営浅草線", "東京都営浅草線"],
+      "color": "#E85298",
+      "relations": [3302734, 8019849]
+    },
+    {
+      "canonical": "Tokyo Metro Chiyoda Line",
+      "aliases": ["東京メトロ千代田線", "千代田線"],
+      "color": "#00BB85",
+      "relations": [443284, 8026050]
+    },
+    {
+      "canonical": "Keio Line",
+      "aliases": ["京王線", "京王電鉄京王線"],
+      "color": "#E50B84",
+      "relations": [11271039, 11271045]
+    },
+    {
+      "canonical": "Keio Inokashira Line",
+      "aliases": ["京王井の頭線", "京王電鉄井の頭線"],
+      "color": "#083476",
+      "relations": [11602038, 11602293]
+    },
+    {
+      "canonical": "Tokyu Toyoko Line",
+      "aliases": ["東急東横線", "東横線"],
+      "color": "#DA0442",
+      "relations": [1947536, 9288982]
+    },
+    {
+      "canonical": "Tokyo Metro Yurakucho Line",
+      "aliases": ["東京メトロ有楽町線", "有楽町線"],
+      "color": "#C1A470",
+      "relations": [443269, 11371520]
+    },
+    {
+      "canonical": "Yurikamome",
+      "aliases": ["新交通ゆりかもめ", "ゆりかもめ"],
+      "color": "#1662B8",
+      "relations": [3300716, 3670770]
+    },
+    {
+      "canonical": "JR Tokaido Main Line",
+      "aliases": ["JR東海道本線", "東海道本線"],
+      "color": "#F68B1F",
+      "relations": [12014184, 12014185]
+    },
+    {
+      "canonical": "Shonan Monorail",
+      "aliases": ["湘南モノレール", "湘南モノレール江の島線"],
+      "color": "#E60012",
+      "relations": [7715259, 9499966]
+    },
+    {
+      "canonical": "Enoshima Electric Railway",
+      "aliases": ["江ノ島電鉄線", "江ノ島電鉄", "Enoden"],
+      "color": "#00843D",
+      "relations": [1943301, 9499956]
+    },
+    {
+      "canonical": "JR Negishi Line",
+      "aliases": ["JR根岸線", "根岸線"],
+      "color": "#00BFFF",
+      "relations": [5195691, 5195692]
+    },
+    {
+      "canonical": "Minatomirai Line",
+      "aliases": ["横浜みなとみらい線", "みなとみらい線"],
+      "color": "#0067C0",
+      "relations": [1905260, 7703632]
+    },
+    {
+      "canonical": "JR Keihin-Tohoku Line",
+      "aliases": ["JR京浜東北線", "京浜東北線"],
+      "color": "#00BFFF",
+      "relations": [5195691, 5195692]
+    },
+    {
+      "canonical": "JR Tsurumi Line",
+      "aliases": ["JR鶴見線", "鶴見線"],
+      "color": "#FFD400",
+      "relations": [11776972, 11777029]
+    },
+    {
+      "canonical": "Toei Oedo Line",
+      "aliases": ["都営大江戸線", "東京都営大江戸線"],
+      "color": "#B6007A",
+      "relations": [3355612, 8019883]
+    },
+    {
+      "canonical": "Tokyo Metro Hanzomon Line",
+      "aliases": ["東京メトロ半蔵門線", "半蔵門線"],
+      "color": "#8F76D6",
+      "relations": [443279, 8026159]
+    },
+    {
+      "canonical": "JR Chuo-Sobu Line",
+      "aliases": ["JR総武線", "JR中央・総武線", "中央・総武緩行線"],
+      "color": "#FFD400",
+      "relations": [3351488, 10312043]
+    },
+    {
+      "canonical": "JR Chuo Line",
+      "aliases": ["JR中央線", "中央線"],
+      "color": "#F15620",
+      "relations": [10363875, 10363876]
+    },
+    {
+      "canonical": "JR Saikyo Line",
+      "aliases": ["JR埼京線", "埼京線"],
+      "color": "#2E8B57",
+      "relations": [21361897]
+    },
+    {
+      "canonical": "Tokyo Metro Fukutoshin Line",
+      "aliases": ["東京メトロ副都心線", "副都心線"],
+      "color": "#9C5E31",
+      "relations": [5375678, 8026168]
+    },
+    {
+      "canonical": "Tokyo Monorail Haneda Airport Line",
+      "aliases": ["東京モノレール羽田線", "東京モノレール羽田空港線"],
+      "color": "#003685",
+      "relations": [3417174, 9251462]
+    },
+    {
+      "canonical": "JR Keihin-Tohoku-Negishi Line",
+      "aliases": ["JR Negishi Line", "JR根岸線", "JR Keihin-Tohoku Line", "JR京浜東北線"],
+      "color": "#00BFFF",
+      "relations": [5195691, 5195692]
+    }
+  ]
+}

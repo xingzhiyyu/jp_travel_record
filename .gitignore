@@ -1,0 +1,15 @@
+.venv/
+.cache/
+__pycache__/
+*.pyc
+output/
+*.egg-info/
+.pytest_cache/
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules/
+record.txt
+record.cleaned.txt
+生成器/data/cache/

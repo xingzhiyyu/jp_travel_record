@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>轨道行程记录生成器</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand">🚄 轨道行程记录生成器</div>
+  <div class="subtitle" id="subtitle">日本全国</div>
+  <div class="header-actions">
+    <label class="toggle" title="勾选时导出中文线路/站名，取消则输出日文原名">
+      <input type="checkbox" id="exportZh" checked>中文站名
+    </label>
+    <button id="btnTheme" class="btn ghost on-dark" title="切换白天/夜间配色">🌙 夜间</button>
+    <button id="btnCopy" class="btn ghost on-dark">复制文本</button>
+    <button id="btnExport" class="btn primary">导出 TXT（旧格式）</button>
+    <button id="btnExportTravel" class="btn primary">导出视频行程</button>
+  </div>
+</header>
+
+<main>
+  <aside class="picker card">
+    <h2>选择线路区段</h2>
+    <label>地区
+      <select id="selRegion"></select>
+    </label>
+    <label>线路（按公司分组）
+      <select id="selLine"></select>
+      <input type="search" id="lineSearch" placeholder="筛选线路 / 公司名…" autocomplete="off">
+    </label>
+    <div class="pair">
+      <label>起点
+        <select id="selStart"></select>
+      </label>
+      <button id="btnSwap" class="btn ghost sm" title="交换起点和终点">⇄</button>
+      <label>终点
+        <select id="selEnd"></select>
+      </label>
+    </div>
+    <div class="line-meta" id="lineMeta"></div>
+    <button id="btnAdd" class="btn primary wide">＋ 添加到列表末尾</button>
+    <div class="kw-box">
+      <div class="kw-btns">
+        <span class="kw-label">标签段</span>
+        <button id="btnWalk" class="btn ghost sm">🚶 步行</button>
+        <button id="btnBus" class="btn ghost sm">🚌 公交</button>
+        <button id="btnTaxi" class="btn ghost sm">🚕 打车</button>
+      </div>
+      <div class="kw-inputs">
+        <input type="text" id="kwStart" placeholder="起点（留空＝接上一段）" autocomplete="off">
+        <span class="kw-arrow">→</span>
+        <input type="text" id="kwEnd" placeholder="终点（留空＝自动衔接）" autocomplete="off">
+      </div>
+      <div class="kw-hint" id="kwHint" style="display:none"></div>
+      <div class="sug" id="sug"></div>
+    </div>
+    <p class="hint">
+      · 576 条线路不好翻？在筛选框输入关键字（支持中文 / 日文 / 公司名）<br>
+      · 步行 / 公交 / 打车段填站名（中文或日文，输入时自动联想补全）后点对应按钮；起终点都留空＝接驳段，自动连上前后的两段，起点留空时输入框下方会提示将衔接的位置<br>
+      · 每行的 ☀️/🌙 按钮切换单条记录的白天/夜间（导出时在模式变化处自动插入模式行）；「⤵ 插入」把当前区段插到该行下方；记录可拖拽排序，点击一行回填微调<br>
+      · 选好区段后按 Enter 快速添加；⌘/Ctrl+Z 撤销上一步<br>
+      · 终点旁的 ⚡ 表示与下一段起点不衔接（渲染时会产生跳跃）<br>
+      · 记录自动保存在浏览器里，下次打开不丢失
+    </p>
+  </aside>
+
+  <section class="records card">
+    <div class="records-head">
+      <h2>行程记录<span class="count" id="recordCount"></span></h2>
+      <div class="records-actions">
+        <button id="btnUndo" class="btn ghost" title="撤销上一次增删/移动（⌘Z / Ctrl+Z）">↩ 撤销</button>
+        <button id="btnImport" class="btn ghost" title="粘贴已有行程文本批量导入">导入</button>
+        <button id="btnClear" class="btn danger">清空全部</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-idx">序号</th>
+            <th>线路</th>
+            <th>起点</th>
+            <th>终点</th>
+            <th class="col-ops">操作</th>
+          </tr>
+        </thead>
+        <tbody id="recordBody"></tbody>
+      </table>
+      <div id="emptyTip" class="empty">还没有记录 —— 在左侧选择线路和起终点后添加</div>
+    </div>
+    <details class="export-preview">
+      <summary>预览导出文本</summary>
+      <pre id="preview"></pre>
+    </details>
+  </section>
+</main>
+
+<dialog id="dlgImport">
+  <h3>导入行程文本</h3>
+  <p class="hint" style="margin:0">粘贴行程文本，每行一条：箭头格式「线路名 起点 → 终点」、标签行「步行 / 公交 / 打车 [起点] → 终点」，旧「序号,线路,起点,终点」逗号格式也兼容；中文 / 日文站名均可识别，# 开头的行忽略。导入会追加到现有记录之后。</p>
+  <textarea id="importText" rows="10" placeholder="# 白天&#10;JR山手线 品川 → 涩谷&#10;步行 梅田&#10;bus 京都駅前 → 四条河原町"></textarea>
+  <div class="dlg-actions">
+    <button id="btnImportCancel" class="btn ghost">取消</button>
+    <button id="btnImportOk" class="btn primary">导入</button>
+  </div>
+</dialog>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
