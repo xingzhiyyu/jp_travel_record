@@ -19,6 +19,6 @@
 
 ## 已实现与未实现
 
-已实现：`render`、`catalog`、`--resolve-only`、`--workers`、显式 day/night、步行虚线、中心蓝点、结尾地理坐标固定蓝点。
+已实现：`render`、`catalog`、`coastline NAME --bounds SOUTH WEST NORTH EAST`（获取并注册精细海岸区域）、`--resolve-only`、`--workers`、显式 day/night、步行虚线、中心蓝点、结尾地理坐标固定蓝点。
 尚未实现：沿途所有站名显示开关、通用自动清洗命令、原生 preview 子命令、直接读取 resolved JSON 渲染、断点续渲染、NVENC 开关。
 不要给用户虚构这些参数。预览可通过小型 Python 脚本调用现有 VideoRenderer 方法；内部接口修改时同步更新脚本。

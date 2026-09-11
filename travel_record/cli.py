@@ -7,7 +7,8 @@ from pathlib import Path
 
 from .parser import TripFormatError, load_trip
 from .renderer import VideoRenderer
-from .sources import DataSourceError, TripResolver, resolved_manifest
+from .sources import DataSourceError, HttpCache, TripResolver, resolved_manifest
+from .coastline import acquire_region
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -29,12 +30,23 @@ def _parser() -> argparse.ArgumentParser:
     catalog = subparsers.add_parser("catalog", help="更新东京、京都和大阪都市圈线路目录")
     catalog.add_argument("-o", "--output", type=Path, default=Path("rail-catalog.json"))
     catalog.add_argument("--cache-dir", type=Path, default=Path(".cache/travel-record"))
+    coast = subparsers.add_parser("coastline", help="获取并验证自定义区域精细海岸线，供后续渲染自动使用")
+    coast.add_argument("name", help="本地区域名称，例如 hakodate")
+    coast.add_argument("--bounds", type=float, nargs=4, required=True,
+                       metavar=("SOUTH", "WEST", "NORTH", "EAST"))
+    coast.add_argument("--cache-dir", type=Path, default=Path(".cache/travel-record"))
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
+        if args.command == "coastline":
+            print(f"正在获取并验证 {args.name} 海岸线；优先复用缓存，公共服务可能需要数分钟。", flush=True)
+            path, snapshot = acquire_region(HttpCache(args.cache_dir), args.name, args.bounds)
+            print(f"已验证并注册精细海岸线：{path}；陆地多边形 {snapshot['land_polygon_count']} 个")
+            print("后续 silhouette 渲染使用相同 --cache-dir 即自动加载；未启动视频渲染。")
+            return 0
         resolver = TripResolver(args.cache_dir)
         if args.command == "catalog":
             count = resolver.export_catalog(args.output)
@@ -71,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
         manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"解析数据：{manifest_path}")
         return 0
-    except (TripFormatError, DataSourceError, RuntimeError) as exc:
+    except (TripFormatError, DataSourceError, RuntimeError, OSError) as exc:
         print(f"错误：{exc}", file=sys.stderr)
         return 2
 

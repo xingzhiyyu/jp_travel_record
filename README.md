@@ -14,6 +14,10 @@ AI 助手交接：[执行流程](docs/WORKFLOW.md)、[可复制提示词](docs/A
 
 精细海岸线按 OSM 的海陆方向拼接，遇到断裂或方向矛盾会报错，不跨海湾直线补齐。数据首次下载后缓存在本地；视频清单的 `coastline_sources` 记录覆盖范围和来源。岸边不添加装饰色带。
 
+新地区可运行 `uv run travel-record coastline hakodate --bounds 41.65 140.50 41.95 140.95`
+获取并验证精细海岸线（顺序：南、西、北、东），之后同缓存目录的 silhouette 渲染自动使用。
+参见[获取流程](docs/WORKFLOW.md#25-为新地区获取精细海岸线)和[专用提示词](docs/COASTLINE_PROMPT.md)。
+
 ## 运行
 
 需要 Python 3.10 以上版本。项目使用 `uv` 管理运行环境：

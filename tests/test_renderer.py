@@ -52,6 +52,9 @@ class ZoomTimingTests(TestCase):
 class BasemapStyleTests(TestCase):
     def test_checks_all_mirror_caches_before_contacting_network(self) -> None:
         http = Mock()
+        cache = TemporaryDirectory()
+        self.addCleanup(cache.cleanup)
+        http.root = Path(cache.name)
         http.cached.side_effect = [None, json.dumps({"elements": [{
             "tags": {"highway": "primary"},
             "geometry": [{"lat": 35.0, "lon": 139.0}, {"lat": 35.1, "lon": 139.1}],

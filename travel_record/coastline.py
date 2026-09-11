@@ -7,7 +7,11 @@ coasts are never closed with a made-up straight line through a bay.
 
 import json
 import math
+import os
+import re
+import tempfile
 import urllib.parse
+from datetime import datetime, timezone
 
 from PIL import ImageDraw
 from shapely.geometry import LineString, box
@@ -25,16 +29,28 @@ COAST_REGIONS = {
 }
 
 
-def fetch_coastline(http, name):
-    bounds = COAST_REGIONS[name]
+def validate_bounds(bounds):
+    if len(bounds) != 4 or not all(math.isfinite(v) for v in bounds):
+        raise DataSourceError("范围必须是四个有限数：南 西 北 东")
+    south, west, north, east = bounds
+    if not (-85 <= south < north <= 85 and -180 <= west < east <= 180):
+        raise DataSourceError("范围无效；不支持跨日期变更线，纬度须在 -85 到 85 之间")
+    return tuple(bounds)
+
+
+def fetch_coastline(http, name, bounds=None):
+    bounds = validate_bounds(COAST_REGIONS[name] if bounds is None else bounds)
     bbox = ",".join(f"{v:.4f}" for v in bounds)
     query = f'[out:json][timeout:180];way["natural"="coastline"]({bbox});out geom;'
     encoded = urllib.parse.urlencode({"data": query}).encode()
     for endpoint in OVERPASS_ENDPOINTS:
         cached = http.cached(endpoint, namespace="overpass-coastline", method="POST", data=encoded)
         if cached:
-            data = json.loads(cached)
-            if data.get("elements") and not data.get("remark"):
+            try:
+                data = json.loads(cached)
+            except (ValueError, UnicodeError):
+                continue
+            if isinstance(data, dict) and data.get("elements") and not data.get("remark"):
                 return data
     errors = []
     for endpoint in OVERPASS_ENDPOINTS:
@@ -42,12 +58,43 @@ def fetch_coastline(http, name):
             data = http.json(endpoint, namespace="overpass-coastline", method="POST", data=encoded,
                              headers={"Content-Type": "application/x-www-form-urlencoded"}, timeout=200,
                              max_age=30 * 24 * 3600)
-            if not data.get("elements") or data.get("remark"):
+            if not isinstance(data, dict) or not data.get("elements") or data.get("remark"):
                 raise DataSourceError("海岸线下载不完整")
             return data
         except (DataSourceError, OSError) as exc:
             errors.append(str(exc))
     raise DataSourceError(f"无法加载 {name} 的精细海岸线：" + "; ".join(errors))
+
+
+def acquire_region(http, name, bounds):
+    """Download, strictly validate, then atomically register a local region."""
+    if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}", name) or name in COAST_REGIONS:
+        raise DataSourceError("名称须为 1–64 位字母、数字、连字符或下划线，且不能覆盖内置区域")
+    bounds = validate_bounds(bounds)
+    if bounds[2] - bounds[0] > 3 or bounds[3] - bounds[1] > 3:
+        raise DataSourceError("单区纬度和经度跨度均不能超过 3 度；请分区获取")
+    # Match the exact request precision, including polygonization boundaries.
+    bounds = validate_bounds(tuple(round(v, 4) for v in bounds))
+    data = fetch_coastline(http, name, bounds)
+    polygons = land_polygons(data, bounds)
+    snapshot = {"version": 1, "name": name, "bounds": bounds, "data": data,
+                "validated_at": datetime.now(timezone.utc).isoformat(),
+                "source": "© OpenStreetMap contributors, ODbL; natural=coastline",
+                "land_polygon_count": len(polygons)}
+    folder = http.root / "coastline-regions"
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f"{name}.json"
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=folder,
+                                         suffix=".tmp", delete=False) as stream:
+            temporary = stream.name
+            json.dump(snapshot, stream, ensure_ascii=False)
+        os.replace(temporary, path)
+    finally:
+        if temporary and os.path.exists(temporary):
+            os.unlink(temporary)
+    return path, snapshot
 
 
 def _parts(geometry):
@@ -103,12 +150,26 @@ class Coastline:
         self.http = http
         self.regions = {}
         self.sources = {}
+        self.bounds = dict(COAST_REGIONS)
+        self.custom = {}
+        for path in sorted((http.root / "coastline-regions").glob("*.json")):
+            try:
+                snapshot = json.loads(path.read_text(encoding="utf-8"))
+                name = snapshot["name"]
+                if snapshot["version"] != 1 or name in self.bounds:
+                    raise ValueError("版本或名称冲突")
+                if not isinstance(snapshot["data"], dict) or not isinstance(snapshot["validated_at"], str):
+                    raise ValueError("缺少有效海岸线快照或验证时间")
+                self.bounds[name] = validate_bounds(snapshot["bounds"])
+                self.custom[name] = snapshot
+            except (ValueError, KeyError, TypeError, OSError) as exc:
+                raise DataSourceError(f"精细海岸线注册文件损坏：{path}: {exc}") from exc
 
     def prepare(self, name):
         if name in self.regions:
             return self.regions[name]
-        data = fetch_coastline(self.http, name)
-        polygons = land_polygons(data, COAST_REGIONS[name])
+        data = self.custom[name]["data"] if name in self.custom else fetch_coastline(self.http, name)
+        polygons = land_polygons(data, self.bounds[name])
         projected = []
         # Exact spatial chunks avoid transforming an entire mainland ring for
         # every close-up frame. Intersections retain the original shoreline.
@@ -130,8 +191,11 @@ class Coastline:
             projected.append(((min(xs), min(ys), max(xs), max(ys)), rings))
         self.regions[name] = projected
         self.sources[name] = {"source": "OpenStreetMap natural=coastline; directed polygonization",
-                              "bbox": COAST_REGIONS[name], "way_count": len(data["elements"]),
+                              "bbox": self.bounds[name], "way_count": len(data["elements"]),
                               "land_polygon_count": len(polygons)}
+        if name in self.custom:
+            self.sources[name]["validated_at"] = self.custom[name]["validated_at"]
+            self.sources[name]["storage"] = "local validated coastline snapshot"
         return projected
 
     def draw(self, image, center, zoom, ratio=2):
@@ -144,7 +208,7 @@ class Coastline:
         def pixels(points):
             return [((x-cx)*scale+width/2, (y-cy)*scale+height/2) for x,y in points]
         draw = ImageDraw.Draw(image)
-        for name, (south, west, north, east) in COAST_REGIONS.items():
+        for name, (south, west, north, east) in self.bounds.items():
             corners = (*world_point(north, west), *world_point(south, east))
             if not visible(corners):
                 continue
