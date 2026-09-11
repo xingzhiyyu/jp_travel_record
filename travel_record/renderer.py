@@ -21,6 +21,7 @@ from .models import ResolvedLeg, Trip
 from .sources import OVERPASS_ENDPOINTS, HttpCache
 from .theme import apply_theme, night_amount, ThemeDraw
 from .coastline import Coastline
+from .shinkansen import is_shinkansen
 
 
 TILE_SIZE = 256
@@ -1118,7 +1119,7 @@ class VideoRenderer:
             # wide Tokaido Shinkansen view.
             if (
                 leg.leg.mode == "rail"
-                and "shinkansen" not in leg.leg.line.casefold()
+                and not is_shinkansen(leg)
                 and distance >= 15_000
             ):
                 requested = max(requested, 12.5)

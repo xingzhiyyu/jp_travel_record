@@ -516,6 +516,7 @@ class OSMRailSource:
             direction_to=leg.destination.name,
             stations=stations,
             details={
+                "canonical_line": seed.get("canonical"),
                 "osm_name": tags.get("name"),
                 "osm_name_en": tags.get("name:en"),
                 "operator": tags.get("operator:en") or tags.get("operator"),
