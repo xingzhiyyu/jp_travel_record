@@ -13,3 +13,5 @@ node_modules/
 record.txt
 record.cleaned.txt
 生成器/data/cache/
+生成器/data/source/
+生成器/scripts/

@@ -14,7 +14,7 @@
 - 不把任何 API 密钥、用户记录、HTTP 缓存、视频或虚拟环境提交到 Git。
 - 不发布或推送仓库，除非用户要求。用户提供的数据库须核实来源和再分发许可后再公开。
 - 视频编码前后均保留 OSM / Natural Earth 署名，不编造几何或以装饰图替代海岸线。
-- 回归命令：`python -m unittest discover -s tests -v`；生成器：`node 生成器/scripts/test_ui.js`。
+- 回归命令：`python -m unittest discover -s tests -v`。本地若保留生成器/scripts/test_ui.js，可运行 `node 生成器/scripts/test_ui.js`；云端精简版不附带 scripts/，修改后检查页面加载、选站和视频行程导出。
 - 可使用 uv 管理环境，或 Python 虚拟环境安装 `pip install -e .`；命令应适应实际操作系统。
 
 ## 已实现与未实现

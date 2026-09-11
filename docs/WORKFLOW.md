@@ -6,12 +6,11 @@
 
 ## 1. 环境与生成器
 
-Python 3.10+；Node.js 仅用于生成器测试。任选一种环境安装方式：
+Python 3.10+；生成器本身只需浏览器。任选一种环境安装方式：
 
 ```sh
 uv sync
 uv run python -m unittest discover -s tests -v
-node 生成器/scripts/test_ui.js
 ```
 
 没有 uv 时，创建 `.venv`，激活后运行 `python -m pip install -e .`。
@@ -27,9 +26,11 @@ Windows 激活路径是 `.venv\Scripts\Activate.ps1`，macOS/Linux 是 `.venv/bi
 **格式兼容不等于全国线路都能渲染。** 生成器有全国站名目录，渲染器重点支持关西/东京及东海道；
 缺失线路关系必须查证、补齐别名和 OSM 关系后再用。站表 sequence 也不是可直接寻路的几何，尤其支线不能机械串联。
 
-生成器使用已生成的 `data.js` 可独立运行。`scripts/build_data.py` 和旧 OSM 构建脚本
-仍引用缺失的 `data.station_zh`，不属于已验证可用的重建链路；不要直接用它覆盖现成数据。
-`japan_railways.sqlite` 的原始提供者/许可证在目前文件说明中不明确，公开前需补证据；不能当成 OSM 或“官方开放数据”自动获得再分发许可。
+云端生成器只包含 `index.html`、`style.css`、`app.js`、`data.js` 和 README，直接使用预生成站表。
+scripts/、data/source/ 可保留在本地，但不再由 Git 跟踪或上传；新克隆不附带这些目录。
+本地存在测试脚本时可运行 `node 生成器/scripts/test_ui.js`；否则检查页面加载、选站和视频行程导出。
+旧构建脚本仍依赖未随仓库提供的 `data.station_zh`，不要自动执行或寻找仓库外的旧项目缓存。
+预生成 `data.js` 的来源与再分发许可仍需确认；移除源数据库并不消除衍生数据的许可问题。
 
 ## 2. 清洗与复核
 

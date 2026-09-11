@@ -7,16 +7,16 @@ GitHub 网页拖拽上传不读取 `.gitignore`；请按下列范围选择文件
 
 - README.md、AGENTS.md、.gitignore、pyproject.toml、uv.lock。
 - travel_record/（排除 __pycache__）、tests/、docs/、example_*.txt。
-- 生成器/index.html、app.js、style.css、data.js、README.md、scripts/、data/source/。
+- 生成器/index.html、app.js、style.css、data.js、README.md。
 
-生成器的 data.js 和 SQLite 及衍生映射在**公开发布前**应确认来源与再分发许可证。
+生成器的 data.js 在**公开发布前**应确认来源与再分发许可证，移除源数据库不代表衍生站表已获授权。
 目前不能替原作者选择许可证。私有仓库也不代表获得向其他人再分发的权利。
-当前 README 已记录构建脚本的外部模块缺失；不要把“静态页面可用”写成“数据构建可复现”。
+精简版不附带源数据库或构建脚本；不要把“静态页面可用”写成“数据构建可复现”。
 
 ## 不上传
 
 `.venv/`、`.cache/`、output/、*.egg-info/、__pycache__/、.pytest_cache/、node_modules/、
-生成器/data/cache/、.DS_Store、.env*、record.txt、record.cleaned.txt。
+生成器/data/cache/、生成器/data/source/、生成器/scripts/、.DS_Store、.env*、record.txt、record.cleaned.txt。
 个人记录可在新电脑另行复制；默认忽略的仅是这两个固定文件名，其他自定义行程文件仍须人工检查。
 地图缓存不随 Git 分发，新电脑首次联网较慢；需要离线迁移时另行传输缓存并保留来源/许可证。
 
