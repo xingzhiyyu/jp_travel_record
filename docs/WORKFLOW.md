@@ -74,7 +74,9 @@ uv run python -m travel_record.cli render record.cleaned.txt -o output/checked.m
 
 ## 2.5 为新地区获取精细海岸线
 
-可复制任务提示词：[COASTLINE_PROMPT.md](COASTLINE_PROMPT.md)。
+先用[海岸线必要性分析提示词](COASTLINE_ANALYSIS_PROMPT.md)判断哪些镜头值得精细化，输出最小下载计划。
+获得获取授权后，再使用[海岸线获取提示词](COASTLINE_PROMPT.md)。
+注意：追加自定义小区域目前不会替代内置大区域的下载，必须区分理想覆盖计划与实际请求范围。
 程序入口是 `travel-record coastline`，实现位于 `travel_record/coastline.py`。
 默认只有关西、东海道、东京三个精细区域；其他地方使用 Natural Earth 概化陆地。
 这个命令可补充任意合法经纬度区域，不会自动推断行程范围，也不启动视频。

@@ -3,6 +3,9 @@
 请先完整阅读 AGENTS.md、README.md、docs/WORKFLOW.md，并核对 `coastline --help` 与
 travel_record/coastline.py。为这次行程补充精细海岸线，不改原始记录，不启动整片，不推送仓库。
 
+如果尚未确定哪些区域需要精细化，先按 docs/COASTLINE_ANALYSIS_PROMPT.md 分析实际镜头并输出下载计划。
+追加小区域不会自动绕过内置大区域下载；在执行前说明实际请求范围和现有机制的限制。
+
 先检查已有 `.resolved.json` 的实际 path 和当前缓存 `coastline-regions/`，区分内置精细覆盖、
 新增覆盖与 Natural Earth 概化区域。根据路线和实际镜头视野选择沿海矩形范围，保留镜头余量；
 不要只框站点，也不要为了内陆段下载全国海岸。范围依次为南纬度、西经度、北纬度、东经度。
