@@ -443,6 +443,38 @@ class OSMRailSource:
         score, station = max(ranked, key=lambda pair: pair[0])
         return station if score >= 55 else None
 
+    def _validate_service_direction(self, leg, relation, nodes):
+        """Validate ordered PTv2 stop members, never infrastructure station pools.
+
+        Matching stop order is necessary, not proof of correct track geometry.
+        In particular it cannot verify loops, directional tracks or crossovers.
+        """
+        tags = relation.get("tags", {})
+        result = {"status": "unverified", "track_geometry": "unverified"}
+        if tags.get("type") != "route" or tags.get("route") != "train" or str(tags.get("public_transport:version")) != "2":
+            result["reason"] = "No ordered PTv2 train service stops"
+            return result
+        stops = []
+        for member in relation.get("members", []):
+            if member.get("type") != "node" or member.get("role") not in {"stop", "stop_entry_only", "stop_exit_only"}:
+                continue
+            node = nodes.get(member["ref"], {})
+            aliases = self._station_aliases(node.get("tags", {}))
+            if aliases and "lat" in node and "lon" in node:
+                stops.append(Station(aliases[0], node["lat"], node["lon"], aliases[1:]))
+        origins = [i for i, station in enumerate(stops) if self._match_station(leg.origin.name, [station])]
+        destinations = [i for i, station in enumerate(stops) if self._match_station(leg.destination.name, [station])]
+        if len(origins) != 1 or len(destinations) != 1 or origins == destinations:
+            result["reason"] = "Missing or ambiguous endpoint in ordered service stops"
+            return result
+        if origins[0] > destinations[0]:
+            raise DataSourceError(
+                f"线路关系 {relation.get('id')} 的停站顺序与“{leg.origin.name} → {leg.destination.name}”相反。"
+                "拒绝反向套用服务轨道；请查找对应方向的关系并核对上下行分离、环线和道岔。不能改成步行。"
+            )
+        result.update(status="stop_order_matches", reason="Input endpoints follow PTv2 stop order")
+        return result
+
     def resolve(self, leg: Leg) -> ResolvedLeg:
         selected = self.select_relation(leg)
         relation_id = int(selected["id"])
@@ -454,6 +486,7 @@ class OSMRailSource:
             item for item in elements if item.get("type") == "relation" and int(item["id"]) == relation_id
         )
         tags = relation.get("tags", {})
+        direction_validation = self._validate_service_direction(leg, relation, nodes)
         stations = self._extract_stations(relation, nodes, ways)
 
         start_station = self._match_station(leg.origin.name, stations)
@@ -515,7 +548,9 @@ class OSMRailSource:
             direction_from=leg.origin.name,
             direction_to=leg.destination.name,
             stations=stations,
+            notes=["方向检查仅核对列车停站顺序；上下行实际轨道、环线和道岔尚未验证，连通性与里程不能替代这些检查。"],
             details={
+                "direction_validation": direction_validation,
                 "canonical_line": seed.get("canonical"),
                 "osm_name": tags.get("name"),
                 "osm_name_en": tags.get("name:en"),

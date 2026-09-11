@@ -8,6 +8,28 @@ from travel_record.models import Station, Leg, Place
 
 
 class StationMatchingTests(TestCase):
+    def test_service_direction_rejects_reverse_even_when_track_connects(self):
+        source = OSMRailSource(Mock(), Mock())
+        nodes = {1: {'lat': 35, 'lon': 136, 'tags': {'name': '敦賀'}},
+                 2: {'lat': 34.9, 'lon': 136, 'tags': {'name': '新疋田'}}}
+        relation = {'id': 123, 'tags': {'type': 'route', 'route': 'train', 'public_transport:version': '2'},
+                    'members': [{'type': 'node', 'role': 'stop', 'ref': i} for i in (1, 2)]}
+        forward = Leg('', '湖西線', Place('敦賀'), Place('新疋田'), 1)
+        check = source._validate_service_direction(forward, relation, nodes)
+        self.assertEqual(check['status'], 'stop_order_matches')
+        self.assertEqual(check['track_geometry'], 'unverified')
+        reverse = Leg('', '湖西線', Place('新疋田'), Place('敦賀'), 1)
+        with self.assertRaisesRegex(DataSourceError, '拒绝反向'):
+            source._validate_service_direction(reverse, relation, nodes)
+        relation['members'].append(relation['members'][0])
+        self.assertEqual(source._validate_service_direction(forward, relation, nodes)['status'], 'unverified')
+
+    def test_infrastructure_and_missing_stops_are_not_direction_verified(self):
+        source = OSMRailSource(Mock(), Mock())
+        leg = Leg('', '湖西線', Place('A'), Place('B'), 1)
+        for tags in ({'route': 'railway'}, {'type': 'route', 'route': 'train', 'public_transport:version': '2'}):
+            self.assertEqual(source._validate_service_direction(leg, {'tags': tags}, {})['status'], 'unverified')
+
     def test_kosei_aliases_select_full_service_without_catalog(self):
         source = OSMRailSource(Mock(), Mock())
         source.places.known = {}
