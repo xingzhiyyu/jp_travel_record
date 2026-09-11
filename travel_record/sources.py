@@ -250,7 +250,7 @@ class OSMRailSource:
                 "("
                 f'rel["type"="route_master"]["route"~"train|subway|light_rail|tram"]'
                 f"({south},{west},{north},{east});"
-                f'rel["type"="route"]["route"~"subway|light_rail|tram|railway"]'
+                f'rel["type"="route"]["route"~"train|subway|light_rail|tram|railway"]'
                 f"({south},{west},{north},{east});"
                 ");out ids tags center;"
             )

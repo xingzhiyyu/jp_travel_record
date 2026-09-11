@@ -8,6 +8,30 @@ from travel_record.models import Station, Leg, Place
 
 
 class StationMatchingTests(TestCase):
+    def test_kosei_aliases_select_full_service_without_catalog(self):
+        source = OSMRailSource(Mock(), Mock())
+        source.places.known = {}
+        relation = {"id": 19142520, "tags": {"type": "route", "route": "train",
+                    "name": "JR湖西線 普通 (敦賀 => 京都)", "from": "敦賀", "to": "京都"}}
+        for name in ('JR Kosei Line', 'Kosei Line', 'JR湖西線', '湖西線', '湖西线', 'JR湖西线'):
+            for origin, destination in [('比良', '近江舞子'), ('近江舞子', '敦賀'), ('山科', '近江塩津')]:
+                with self.subTest(name=name, origin=origin, destination=destination):
+                    leg = Leg('', name, Place(origin), Place(destination), 1)
+                    with patch.object(source, '_relation_metadata', return_value=relation) as metadata, \
+                         patch.object(source, 'discover_catalog') as catalog:
+                        self.assertEqual(source.select_relation(leg)['id'], 19142520)
+                        metadata.assert_called_once_with(19142520)
+                        catalog.assert_not_called()
+
+    def test_discovery_includes_train_service_relations(self):
+        source = OSMRailSource(Mock(), Mock())
+        source.seed_by_relation = {}
+        with patch.object(source, '_overpass', return_value={'elements': []}) as query:
+            source.discover_catalog()
+        self.assertTrue(query.call_args_list)
+        for call in query.call_args_list:
+            self.assertIn('rel["type"="route"]["route"~"train|', call.args[0])
+
     def test_named_osm_colours_are_safe_for_the_renderer(self):
         self.assertEqual(_route_color("green"), "#008000")
         self.assertEqual(_route_color("#007ac2"), "#007ac2")

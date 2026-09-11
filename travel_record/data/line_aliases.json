@@ -1,6 +1,12 @@
 {
   "lines": [
     {
+      "canonical": "JR Kosei Line",
+      "aliases": ["Kosei Line", "JR湖西線", "湖西線", "JR湖西线", "湖西线", "JR 湖西線", "JR 湖西线"],
+      "color": "#00BFFF",
+      "relations": [19142520]
+    },
+    {
       "canonical": "Tokaido Shinkansen",
       "aliases": ["JR Tokaido Shinkansen", "Tōkaidō Shinkansen", "東海道新幹線", "东海道新干线"],
       "color": "#0072BC",
