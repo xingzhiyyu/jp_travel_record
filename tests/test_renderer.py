@@ -88,8 +88,53 @@ class BasemapStyleTests(TestCase):
         )
         self.assertEqual(roads, [("motorway", [(35.0, 139.0), (35.1, 139.1)])])
 
+    def test_kibune_road_query_includes_local_road_classes(self) -> None:
+        http = Mock()
+        http.offline = False
+        with TemporaryDirectory() as directory:
+            http.root = Path(directory)
+            http.cached.return_value = None
+            http.json.return_value = {
+                "elements": [
+                    {
+                        "tags": {"highway": "secondary"},
+                        "geometry": [
+                            {"lat": 35.10, "lon": 135.76},
+                            {"lat": 35.11, "lon": 135.77},
+                        ],
+                    }
+                ]
+            }
+            basemap = Basemap(http, 320, 180, "silhouette")
+            roads = basemap._roads_for_view((35.12, 135.76), 14)
+        self.assertEqual(roads[0][0], "secondary")
+        self.assertIn(b"secondary", http.json.call_args.kwargs["data"])
+        self.assertIn(b"unclassified", http.json.call_args.kwargs["data"])
+
 
 class VideoOutputTests(TestCase):
+    def test_source_preflight_warms_lazy_layers_before_encoding(self) -> None:
+        leg = Leg("", "walk", Place("A"), Place("B"), 1)
+        resolved = ResolvedLeg(
+            leg,
+            [(35.10, 135.75), (35.12, 135.77)],
+            "#777777",
+            "test",
+        )
+        with TemporaryDirectory() as directory:
+            renderer = VideoRenderer(
+                Trip("test", [leg], basemap="silhouette"), Path(directory)
+            )
+            renderer.basemap = Mock()
+            renderer.basemap.zoom_for_path.return_value = 14
+            result = renderer.preflight_sources([resolved])
+        self.assertGreater(result["sample_count"], 0)
+        renderer.basemap._load_land_polygons.assert_called_once()
+        renderer.basemap.context.draw.assert_called()
+        renderer.basemap.coastline.draw.assert_called()
+        renderer.basemap._roads_for_view.assert_called()
+        renderer.basemap.rail_network.draw.assert_called()
+
     def test_transfer_frame_uses_interpolated_center_without_changing_route(self) -> None:
         leg = Leg("", "walk", Place("A"), Place("B"), 1)
         route = ResolvedLeg(leg, [(34.7, 135.49), (34.71, 135.5)], "#777777", "test")

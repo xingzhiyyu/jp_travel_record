@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -57,6 +58,24 @@ def _line_core(value: str) -> str:
     if result.endswith("線") and len(result) > 1:
         result = result[:-1]
     return result
+
+
+def _matches_seed_name(query: str, name: str) -> bool:
+    """Match a known line while allowing a trailing direction qualifier.
+
+    Direction text describes the service being taken; it must not change the
+    identity of a line and trigger fuzzy catalog fallback to another operator.
+    """
+    target = normalize_name(query)
+    candidate = normalize_name(name)
+    if target == candidate:
+        return True
+    if not candidate or not target.startswith(candidate):
+        return False
+    suffix = target[len(candidate) :]
+    return bool(
+        re.fullmatch(r"(?:[a-z0-9]+bound|for[a-z0-9]+|[\w]+(?:方面|行き|ゆき|方向))", suffix)
+    )
 
 
 class DataSourceError(RuntimeError):
@@ -161,7 +180,9 @@ class PlaceResolver:
     def remember(self, name: str, coordinate: tuple[float, float]) -> None:
         self.known[normalize_name(name)] = coordinate
 
-    def resolve(self, place: Place, bias: str | None = None) -> tuple[float, float]:
+    def resolve(
+        self, place: Place, bias: str | None = None, *, prefer_station: bool = False
+    ) -> tuple[float, float]:
         if place.coordinate is not None:
             self.remember(place.name, place.coordinate)
             return place.coordinate
@@ -170,23 +191,76 @@ class PlaceResolver:
             return self.known[key]
         query = place.name if not bias else f"{place.name}, {bias}"
         params = urllib.parse.urlencode(
+            {
+                "q": query,
+                "format": "jsonv2",
+                "limit": 5,
+                "addressdetails": 1,
+                "namedetails": 1,
+            }
+        )
+        current_url = f"https://nominatim.openstreetmap.org/search?{params}"
+        legacy_params = urllib.parse.urlencode(
             {"q": query, "format": "jsonv2", "limit": 1, "addressdetails": 0}
         )
+        legacy_url = f"https://nominatim.openstreetmap.org/search?{legacy_params}"
         wait = 1.05 - (time.monotonic() - self._last_nominatim_request)
         if wait > 0:
             time.sleep(wait)
-        data = self.http.json(
-            f"https://nominatim.openstreetmap.org/search?{params}",
-            namespace="nominatim",
-            max_age=365 * 24 * 3600,
-            timeout=30,
+        cached = self.http.cached(current_url, namespace="nominatim")
+        legacy_cached = (
+            None
+            if prefer_station
+            else self.http.cached(legacy_url, namespace="nominatim")
         )
+        if cached or legacy_cached:
+            data = json.loads(cached or legacy_cached)
+        else:
+            try:
+                data = self.http.json(
+                    current_url,
+                    namespace="nominatim",
+                    max_age=365 * 24 * 3600,
+                    timeout=30,
+                )
+            except DataSourceError as current_error:
+                # Preserve compatibility with place lookups cached by versions that
+                # requested only one result and no metadata.
+                try:
+                    data = self.http.json(
+                        legacy_url,
+                        namespace="nominatim",
+                        max_age=365 * 24 * 3600,
+                        timeout=30,
+                    )
+                except DataSourceError:
+                    raise current_error
         self._last_nominatim_request = time.monotonic()
         if not data:
             raise DataSourceError(
                 f"找不到地点“{place.name}”。可写成 {place.name}@35.0,135.0 明确指定坐标。"
             )
-        coordinate = (float(data[0]["lat"]), float(data[0]["lon"]))
+        def rank(item: dict[str, Any]) -> tuple[int, float]:
+            category = str(item.get("category") or item.get("class") or "").casefold()
+            kind = str(item.get("type") or "").casefold()
+            station = category in {"railway", "public_transport"} or kind in {
+                "station", "halt", "tram_stop", "subway_entrance", "platform"
+            }
+            wrong_kind = category in {"tourism", "historic"} or kind in {
+                "attraction", "museum", "theme_park"
+            }
+            type_score = 2 if station else -2 if wrong_kind else 0
+            if not prefer_station:
+                type_score = 0
+            return type_score, float(item.get("importance") or 0)
+
+        selected = max(data, key=rank)
+        if prefer_station and rank(selected)[0] < 1:
+            raise DataSourceError(
+                f"地点“{place.name}”未找到明确的铁路车站候选；"
+                f"请写运营商/线路名，或用 {place.name}@35.0,135.0 指定坐标。"
+            )
+        coordinate = (float(selected["lat"]), float(selected["lon"]))
         self.remember(place.name, coordinate)
         return coordinate
 
@@ -326,11 +400,10 @@ class OSMRailSource:
         return False
 
     def select_relation(self, leg: Leg) -> dict[str, Any]:
-        query_key = normalize_name(leg.line)
         seeded_ids: list[int] = []
         for line in self.seed:
             names = [line["canonical"], *line.get("aliases", [])]
-            if any(normalize_name(name) == query_key for name in names):
+            if any(_matches_seed_name(leg.line, name) for name in names):
                 seeded_ids.extend(int(value) for value in line["relations"])
         candidates: list[dict[str, Any]] = []
         for relation_id in seeded_ids:
@@ -494,12 +567,16 @@ class OSMRailSource:
         start = (
             (start_station.lat, start_station.lon)
             if start_station
-            else self.places.resolve(leg.origin, tags.get("network:en") or "Japan")
+            else self.places.resolve(
+                leg.origin, tags.get("network:en") or "Japan", prefer_station=True
+            )
         )
         end = (
             (end_station.lat, end_station.lon)
             if end_station
-            else self.places.resolve(leg.destination, tags.get("network:en") or "Japan")
+            else self.places.resolve(
+                leg.destination, tags.get("network:en") or "Japan", prefer_station=True
+            )
         )
         self.places.remember(leg.origin.name, start)
         self.places.remember(leg.destination.name, end)
@@ -637,6 +714,7 @@ class OpenStreetMapRouteSource:
 
     def __init__(self, http: HttpCache) -> None:
         self.http = http
+        self.failures: dict[str, str] = {}
         self.foot_url = os.environ.get(
             "TRAVEL_RECORD_FOOT_ROUTER_URL",
             "https://routing.openstreetmap.de/routed-foot/route/v1/driving",
@@ -654,13 +732,16 @@ class OpenStreetMapRouteSource:
         try:
             data = self.http.json(f"{base_url}/{coordinates}?{query}", namespace=namespace,
                                   max_age=90 * 24 * 3600, timeout=60)
-        except DataSourceError:
+        except DataSourceError as exc:
+            self.failures[namespace] = str(exc)
             return None
         route = data.get("routes", [{}])[0]
         geometry = route.get("geometry", {}).get("coordinates", [])
         points = [(float(lat), float(lon)) for lon, lat in geometry if len((lon, lat)) == 2]
         if len(points) < 2:
+            self.failures[namespace] = "路由服务没有返回可用折线"
             return None
+        self.failures.pop(namespace, None)
         return points, {"distance_meters": route.get("distance"), "duration_seconds": route.get("duration")}
 
     def walking_path(self, start: tuple[float, float], end: tuple[float, float]):
@@ -699,7 +780,15 @@ class TripResolver:
                 path=[start, end],
                 color="#6B7280",
                 source="straight walking guide",
-                notes=["步行段不请求道路路径，仅显示简化方向。"],
+                notes=[
+                    "步行道路路径不可用，已使用端点直线："
+                    + self.router.failures.get("osm-foot-routes", "原因未知")
+                ],
+                details={
+                    "fallback_reason": self.router.failures.get(
+                        "osm-foot-routes", "原因未知"
+                    )
+                },
             )
         if leg.mode == "taxi":
             routed = self.router.taxi_path(start, end)
@@ -717,7 +806,15 @@ class TripResolver:
                 path=[start, end],
                 color="#C9982B",
                 source="straight taxi guide",
-                notes=["出租车段不请求道路路径，仅显示简化方向。"],
+                notes=[
+                    "出租车道路路径不可用，已使用端点直线："
+                    + self.router.failures.get("osm-driving-routes", "原因未知")
+                ],
+                details={
+                    "fallback_reason": self.router.failures.get(
+                        "osm-driving-routes", "原因未知"
+                    )
+                },
             )
         google = self.google.bus_path(start, end, locale)
         if google:
@@ -738,7 +835,15 @@ class TripResolver:
         )
 
     def resolve_trip(self, trip: Trip) -> list[ResolvedLeg]:
-        return [self.resolve_leg(leg, trip.locale) for leg in trip.legs]
+        resolved = [self.resolve_leg(leg, trip.locale) for leg in trip.legs]
+        for previous, current in zip(resolved, resolved[1:]):
+            gap = haversine(previous.path[-1], current.path[0])
+            current.details["connection_from_previous_meters"] = round(gap, 1)
+            if gap > 300:
+                current.notes.append(
+                    f"与上一段存在 {gap:.0f} 米空间断点；未自动补画未记录的接驳。"
+                )
+        return resolved
 
     def export_catalog(self, destination: Path) -> int:
         items = self.rail.discover_catalog()

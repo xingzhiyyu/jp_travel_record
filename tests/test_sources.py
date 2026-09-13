@@ -3,8 +3,15 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from travel_record.sources import DataSourceError, HttpCache, OSMRailSource, _route_color
-from travel_record.models import Station, Leg, Place
+from travel_record.sources import (
+    DataSourceError,
+    HttpCache,
+    OSMRailSource,
+    PlaceResolver,
+    TripResolver,
+    _route_color,
+)
+from travel_record.models import Station, Leg, Place, ResolvedLeg, Trip
 
 
 class StationMatchingTests(TestCase):
@@ -67,6 +74,22 @@ class StationMatchingTests(TestCase):
                 source.select_relation(leg)
             catalog.assert_not_called()
 
+    def test_direction_suffix_still_locks_known_sanin_line(self):
+        source = OSMRailSource(Mock(), Mock())
+        source.places.known = {}
+        relation = {
+            "id": 10154357,
+            "tags": {"type": "route", "route": "train", "name": "嵯峨野線"},
+        }
+        leg = Leg(
+            "", "JR Sanin Main Line Osaka-bound", Place("Saga-Arashiyama"), Place("Nijo"), 1
+        )
+        with patch.object(source, "_relation_metadata", return_value=relation) as metadata, \
+             patch.object(source, "discover_catalog") as catalog:
+            self.assertEqual(source.select_relation(leg)["id"], 10154357)
+            self.assertTrue(metadata.called)
+            catalog.assert_not_called()
+
     def test_shin_imamiya_osm_spelling_does_not_select_imamiya(self):
         imamiya = Station("今宮", 34.654, 135.493, ["Imamiya"])
         shin = Station("新今宮", 34.650, 135.502, ["Shin-Imaimiya"])
@@ -85,3 +108,43 @@ class OfflineCacheTests(TestCase):
                 with self.assertRaises(DataSourceError):
                     cache.request("https://example.invalid/missing", namespace="test")
                 network.assert_not_called()
+
+
+class PlaceAndFallbackTests(TestCase):
+    def test_station_preference_does_not_choose_same_named_attraction(self):
+        http = Mock()
+        http.cached.return_value = None
+        http.json.return_value = [
+            {"lat": "35.0", "lon": "135.0", "category": "tourism", "type": "attraction", "importance": 0.9},
+            {"lat": "35.1", "lon": "135.1", "category": "railway", "type": "station", "importance": 0.4},
+        ]
+        resolver = PlaceResolver(http)
+        resolver._last_nominatim_request = -100
+        self.assertEqual(
+            resolver.resolve(Place("Unique Station Candidate"), prefer_station=True),
+            (35.1, 135.1),
+        )
+
+    def test_walking_fallback_records_actual_failure(self):
+        with TemporaryDirectory() as directory:
+            resolver = TripResolver(Path(directory))
+            resolver.places.resolve = Mock(side_effect=[(35.0, 135.0), (35.01, 135.01)])
+            resolver.router.walking_path = Mock(return_value=None)
+            resolver.router.failures["osm-foot-routes"] = "离线缓存缺失"
+            leg = resolver.resolve_leg(Leg("", "walk", Place("A"), Place("B"), 1))
+        self.assertEqual(leg.details["fallback_reason"], "离线缓存缺失")
+        self.assertIn("离线缓存缺失", leg.notes[0])
+
+    def test_trip_records_connection_gap_without_inventing_route(self):
+        with TemporaryDirectory() as directory:
+            resolver = TripResolver(Path(directory))
+            first_leg = Leg("", "walk", Place("A"), Place("B"), 1)
+            second_leg = Leg("", "walk", Place("C"), Place("D"), 2)
+            resolved = [
+                ResolvedLeg(first_leg, [(35.0, 135.0), (35.0, 135.0)], "#777", "test"),
+                ResolvedLeg(second_leg, [(35.01, 135.01), (35.02, 135.02)], "#777", "test"),
+            ]
+            resolver.resolve_leg = Mock(side_effect=resolved)
+            result = resolver.resolve_trip(Trip("test", [first_leg, second_leg]))
+        self.assertGreater(result[1].details["connection_from_previous_meters"], 300)
+        self.assertIn("未自动补画", result[1].notes[-1])

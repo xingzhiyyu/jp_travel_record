@@ -51,6 +51,11 @@ class ThemeRenderTests(TestCase):
         panel = theme_color((255,255,252,245), 1)
         self.assertGreater(panel[2], panel[0])
 
+    def test_muted_official_transit_colours_keep_their_hue_at_night(self):
+        self.assertEqual(theme_color("#C1A470", 1), (193, 164, 112))
+        # Dark purple is lifted for contrast but remains purple rather than blue-grey.
+        self.assertEqual(theme_color("#7B3C8D", 1), (131, 64, 150))
+
     def test_text_stays_readable_through_every_transition_sample(self):
         for i in range(101):
             amount = i / 100

@@ -1,15 +1,18 @@
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from PIL import Image
 
 from travel_record.cartography import (
     AtlasCanvas,
     AtlasPresentation,
+    CONTEXT_REGIONS,
     MapContext,
+    context_query,
     joined_rings,
 )
 from travel_record.models import Trip, Leg, Place, ResolvedLeg
+from travel_record.sources import DataSourceError
 
 
 class RouteVisibilityTests(TestCase):
@@ -43,6 +46,13 @@ class RouteVisibilityTests(TestCase):
 
 
 class ContextGeometryTests(TestCase):
+    def test_stream_query_is_limited_to_small_kyoto_north_region(self) -> None:
+        self.assertNotIn(b"stream", context_query(CONTEXT_REGIONS["kansai"]))
+        self.assertIn(
+            b"stream",
+            context_query(CONTEXT_REGIONS["kyoto_north"], include_streams=True),
+        )
+
     def test_joins_reversed_multipolygon_members_without_inventing_edges(self) -> None:
         a, b, c, d = (0, 0), (1, 0), (1, 1), (0, 1)
         rings = joined_rings([[b, a], [b, c], [d, c], [a, d]])
@@ -120,6 +130,59 @@ class ContextGeometryTests(TestCase):
         )
         self.assertEqual(len(features), 1)
         self.assertEqual(features[0][0], "land")
+
+    def test_filters_ksj2_forest_planning_but_keeps_normal_forest(self) -> None:
+        def polygon(offset):
+            return [
+                {"lat": 35.0 + offset, "lon": 135.0},
+                {"lat": 35.0 + offset, "lon": 135.1},
+                {"lat": 35.1 + offset, "lon": 135.1},
+                {"lat": 35.0 + offset, "lon": 135.0},
+            ]
+
+        features = MapContext.extract(
+            {
+                "elements": [
+                    {
+                        "type": "relation",
+                        "tags": {"landuse": "forest", "source": "KSJ2", "note": "地域森林計画対象民有林"},
+                        "members": [{"role": "outer", "geometry": polygon(0)}],
+                    },
+                    {
+                        "type": "way",
+                        "tags": {"landuse": "forest", "source": "survey"},
+                        "geometry": polygon(0.2),
+                    },
+                ]
+            }
+        )
+        self.assertEqual(len(features), 1)
+        self.assertEqual(features[0][0], "green")
+
+    def test_stream_is_kept_as_linear_water_context(self) -> None:
+        features = MapContext.extract(
+            {
+                "elements": [
+                    {
+                        "type": "way",
+                        "tags": {"waterway": "stream"},
+                        "geometry": [
+                            {"lat": 35.0, "lon": 135.0},
+                            {"lat": 35.1, "lon": 135.1},
+                        ],
+                    }
+                ]
+            }
+        )
+        self.assertEqual(features[0][0], "river")
+
+    def test_offline_missing_context_fails_instead_of_drawing_blank_map(self) -> None:
+        http = Mock()
+        http.offline = True
+        context = MapContext(http)
+        with patch("travel_record.cartography.fetch_context", side_effect=DataSourceError("missing")):
+            with self.assertRaisesRegex(DataSourceError, "拒绝生成空白底图"):
+                context.draw(Image.new("RGB", (320, 180)), (35.1, 135.75), 14)
 
 
 class CenterMarkerTests(TestCase):

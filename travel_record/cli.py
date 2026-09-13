@@ -63,10 +63,17 @@ def main(argv: list[str] | None = None) -> int:
         manifest = resolved_manifest(trip, resolved)
         if not args.resolve_only:
             renderer = VideoRenderer(trip, args.cache_dir)
+            preflight = renderer.preflight_sources(resolved)
+            if preflight["sample_count"]:
+                print(
+                    f"底图预检完成：{preflight['sample_count']} 个沿途采样位置；开始编码。",
+                    flush=True,
+                )
             renderer.render(resolved, output, workers=args.workers)
             manifest["basemap"] = {
                 "style": trip.basemap,
                 "design": "travel-atlas" if trip.basemap == "silhouette" else trip.basemap,
+                "preflight": preflight,
                 "road_sources": renderer.basemap.road_sources,
                 "context_sources": renderer.basemap.context.sources,
                 "urban_rail_sources": renderer.basemap.rail_network.sources,

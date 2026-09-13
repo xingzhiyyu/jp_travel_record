@@ -18,7 +18,7 @@ from .cartography import AtlasPresentation, MapContext, PAPER, WATER, world_poin
 from .rail_background import UrbanRailNetwork
 from .geo import haversine, point_at, polyline_lengths, prefix_path
 from .models import ResolvedLeg, Trip
-from .sources import OVERPASS_ENDPOINTS, HttpCache
+from .sources import DataSourceError, OVERPASS_ENDPOINTS, HttpCache
 from .theme import apply_theme, night_amount, ThemeDraw
 from .coastline import Coastline
 from .shinkansen import is_shinkansen
@@ -311,6 +311,11 @@ class Basemap:
 
         road_growth = max(0.0, min(1.5, (zoom - 12) / 3))
         road_styles = {
+            "unclassified": ("#E4E3DA", 0.55 + road_growth * 0.25),
+            "tertiary": ("#DFDDD1", 0.65 + road_growth * 0.35),
+            "tertiary_link": ("#DFDDD1", 0.55 + road_growth * 0.25),
+            "secondary": ("#DDD8C8", 0.75 + road_growth * 0.45),
+            "secondary_link": ("#DDD8C8", 0.65 + road_growth * 0.30),
             "primary": ("#DBDCD2", 0.8 + road_growth * 0.6),
             "primary_link": ("#DBDCD2", 0.7),
             "trunk": ("#D5CBB0", 1.2 + road_growth * 0.7),
@@ -388,8 +393,20 @@ class Basemap:
     ) -> list[tuple[str, list[tuple[float, float]]]]:
         if zoom < 11.3:
             return []
-        level, spacing, radius = "fine", 0.75, 0.55
-        highway_pattern = "motorway|motorway_link|trunk|trunk_link|primary|primary_link"
+        kyoto_mountains = (
+            zoom >= 13
+            and 35.03 <= center[0] <= 35.31
+            and 135.62 <= center[1] <= 135.91
+        )
+        if kyoto_mountains:
+            level, spacing, radius = "local", 0.18, 0.16
+            highway_pattern = (
+                "motorway|motorway_link|trunk|trunk_link|primary|primary_link|"
+                "secondary|secondary_link|tertiary|tertiary_link|unclassified"
+            )
+        else:
+            level, spacing, radius = "fine", 0.75, 0.55
+            highway_pattern = "motorway|motorway_link|trunk|trunk_link|primary|primary_link"
         lat_index = round(center[0] / spacing)
         lon_index = round(center[1] / spacing)
         key = (level, lat_index, lon_index)
@@ -408,14 +425,27 @@ class Basemap:
         encoded = urllib.parse.urlencode({"data": query}).encode("utf-8")
         roads: list[tuple[str, list[tuple[float, float]]]] = []
         # Check every mirror's cache before attempting any network request.
+        cached_response = False
         for endpoint in OVERPASS_ENDPOINTS:
             payload = self.http.cached(endpoint, namespace="overpass-major-roads", method="POST", data=encoded)
             if payload:
-                roads = self._extract_roads(json.loads(payload))
+                cached_response = True
+                cached_data = json.loads(payload)
+                if cached_data.get("remark"):
+                    continue
+                roads = self._extract_roads(cached_data)
                 if roads:
                     self._road_cells[key] = roads
                     self.road_sources[str(key)] = "cached OpenStreetMap vector roads"
                     return roads
+        if cached_response and self.http.offline:
+            self._road_cells[key] = []
+            self.road_sources[str(key)] = "cached OpenStreetMap vector roads; no matching roads"
+            return []
+        if self.http.offline:
+            raise DataSourceError(
+                f"离线渲染缺少道路缓存单元 {key}；拒绝使用不完整瓦片生成空白底图。"
+            )
         for endpoint in reversed(OVERPASS_ENDPOINTS):
             try:
                 data = self.http.json(
@@ -1131,6 +1161,47 @@ class VideoRenderer:
             change = max(-4.0, min(4.0, requested - previous))
             target_zooms.append(previous + change)
         return target_zooms
+
+    def preflight_sources(self, legs: list[ResolvedLeg]) -> dict[str, int]:
+        """Load lazy silhouette sources before starting an expensive encode.
+
+        Parallel workers cannot report their in-process source inventories back
+        to the parent.  This lightweight geographic sampling both warms their
+        caches and makes missing offline context fail before video encoding.
+        """
+        if self.trip.basemap != "silhouette" or not legs:
+            return {"sample_count": 0}
+        target_zooms = self._target_zooms(legs)
+        samples: dict[tuple[int, int, int], tuple[tuple[float, float], float]] = {}
+        spacing = 0.08
+        for index, leg in enumerate(legs):
+            zoom = target_zooms[index]
+            for point in leg.path:
+                key = (
+                    round(point[0] / spacing),
+                    round(point[1] / spacing),
+                    round(zoom * 2),
+                )
+                samples.setdefault(key, (point, zoom))
+            neighbor_zooms = target_zooms[max(0, index - 1) : index + 2]
+            endpoint_zoom = max(neighbor_zooms)
+            for point in (leg.path[0], leg.path[-1]):
+                key = (
+                    round(point[0] / spacing),
+                    round(point[1] / spacing),
+                    round(endpoint_zoom * 2),
+                )
+                samples.setdefault(key, (point, endpoint_zoom))
+
+        self.basemap._load_land_polygons()
+        probe = Image.new("RGB", (32, 32), PAPER)
+        for center, zoom in samples.values():
+            self.basemap.coastline.draw(probe, center, zoom, ratio=1)
+            self.basemap.context.draw(probe, center, zoom, ratio=1)
+            if zoom >= 11.3:
+                self.basemap._roads_for_view(center, zoom)
+            self.basemap.rail_network.draw(probe, center, zoom, ratio=1)
+        return {"sample_count": len(samples)}
 
     def render(
         self, legs: list[ResolvedLeg], destination: Path, workers: int = 1

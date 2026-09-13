@@ -16,7 +16,13 @@ def night_rgb(r, g, b, *, ui=False):
         else:
             saturation *= 0.65
         return colorsys.hls_to_rgb(hue, 0.035 + 0.19 * lightness**1.8, saturation)
-    if ui and saturation > 0.4 and lightness < 0.8:
+    # Official transit colours include muted golds such as Tokyo Metro
+    # Yurakucho #C1A470 (HLS saturation is only about 0.40).  Preserve their
+    # hue instead of classifying them as neutral interface ink.
+    preserve_transit_hue = saturation > 0.4 or (
+        lightness >= 0.4 and saturation > 0.25
+    )
+    if ui and preserve_transit_hue and lightness < 0.8:
         return colorsys.hls_to_rgb(hue, max(0.42, lightness), saturation)
     if saturation < 0.4 or lightness > 0.8:
         hue, saturation = 0.59, 0.23

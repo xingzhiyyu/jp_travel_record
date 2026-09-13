@@ -15,7 +15,7 @@ from pathlib import Path
 from PIL import Image, ImageColor, ImageDraw, ImageFont
 
 from .geo import haversine, polyline_lengths, prefix_path
-from .sources import OVERPASS_ENDPOINTS, HttpCache
+from .sources import DataSourceError, OVERPASS_ENDPOINTS, HttpCache
 from .theme import ThemeDraw, apply_theme
 
 
@@ -27,6 +27,9 @@ MUTED = "#6D8084"
 BLUE = "#1677FF"
 CONTEXT_REGIONS = {
     "kansai": (34.38, 135.15, 35.08, 135.86),
+    # Mountain valleys north of Kyoto need their own smaller, denser context
+    # snapshot; the old Kansai query ended inside the Kibune camera range.
+    "kyoto_north": (35.04, 135.62, 35.30, 135.91),
     "tokyo": (35.58, 139.62, 35.80, 139.94),
     # Yokohama's reclaimed port islands are represented by detailed land-use
     # polygons in OSM, not only by natural=coastline.
@@ -34,8 +37,11 @@ CONTEXT_REGIONS = {
 }
 
 
-def context_query(bounds: tuple[float, float, float, float]) -> bytes:
+def context_query(
+    bounds: tuple[float, float, float, float], *, include_streams: bool = False
+) -> bytes:
     bbox = ",".join(f"{value:.4f}" for value in bounds)
+    waterways = "river|canal|stream" if include_streams else "river|canal"
     query = (
         "[out:json][timeout:90];("
         f'way["natural"~"^(water|wood)$"]({bbox});'
@@ -46,14 +52,16 @@ def context_query(bounds: tuple[float, float, float, float]) -> bytes:
         f'relation["leisure"="park"]({bbox});'
         f'way["landuse"="industrial"]({bbox});'
         f'relation["landuse"="industrial"]({bbox});'
-        f'way["waterway"~"^(river|canal)$"]({bbox});'
+        f'way["waterway"~"^({waterways})$"]({bbox});'
         ");out geom;"
     )
     return urllib.parse.urlencode({"data": query}).encode()
 
 
 def fetch_context(http: HttpCache, name: str) -> dict:
-    encoded = context_query(CONTEXT_REGIONS[name])
+    encoded = context_query(
+        CONTEXT_REGIONS[name], include_streams=name == "kyoto_north"
+    )
     for endpoint in OVERPASS_ENDPOINTS:
         payload = http.cached(
             endpoint, namespace="overpass-map-context", method="POST", data=encoded
@@ -118,8 +126,22 @@ class MapContext:
         result = []
         for element in data.get("elements", []):
             tags = element.get("tags", {})
+            provenance = " ".join(
+                str(tags.get(key, ""))
+                for key in ("source", "note", "description", "fixme")
+            ).casefold()
+            if (
+                element.get("type") == "relation"
+                and tags.get("landuse") == "forest"
+                and (
+                    "ksj2" in provenance
+                    or "地域森林計画対象民有林" in provenance
+                    or "地域森林计划对象民有林" in provenance
+                )
+            ):
+                continue
             kind = "water" if tags.get("natural") == "water" else "green"
-            if tags.get("waterway") in {"river", "canal"}:
+            if tags.get("waterway") in {"river", "canal", "stream"}:
                 kind = "river"
             elif tags.get("landuse") in {
                 "industrial", "commercial", "retail", "residential", "railway"
@@ -194,7 +216,22 @@ class MapContext:
 
         for name, (south, west, north, east) in CONTEXT_REGIONS.items():
             a, b = world_point(north, west), world_point(south, east)
-            if b[0] < view[0] or a[0] > view[2] or b[1] < view[1] or a[1] > view[3]:
+            query_visible = not (
+                b[0] < view[0]
+                or a[0] > view[2]
+                or b[1] < view[1]
+                or a[1] > view[3]
+            )
+            loaded_visible = name in self.regions and any(
+                not (
+                    bounds[2] < view[0]
+                    or bounds[0] > view[2]
+                    or bounds[3] < view[1]
+                    or bounds[1] > view[3]
+                )
+                for _kind, bounds, _ring, _holes in self.regions[name]
+            )
+            if not query_visible and not loaded_visible:
                 continue
             if name not in self.regions:
                 try:
@@ -202,9 +239,13 @@ class MapContext:
                     self.sources[name] = (
                         "OpenStreetMap water, woodland and park geometries"
                     )
-                except Exception:
+                except DataSourceError as exc:
                     self.regions[name] = []
-                    self.sources[name] = "unavailable; omitted"
+                    self.sources[name] = f"unavailable; omitted: {exc}"
+                    if self.http.offline:
+                        raise DataSourceError(
+                            f"离线渲染缺少 {name} 环境底图缓存；拒绝生成空白底图。"
+                        ) from exc
             for kind, bounds, ring, holes in self.regions[name]:
                 if (
                     bounds[2] < view[0]
