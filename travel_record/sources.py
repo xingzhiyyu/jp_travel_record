@@ -16,7 +16,13 @@ from typing import Any
 
 from PIL import ImageColor
 
-from .geo import decode_google_polyline, graph_path, haversine, normalize_name
+from .geo import (
+    decode_google_polyline,
+    graph_path,
+    haversine,
+    normalize_name,
+    polyline_lengths,
+)
 from .models import Leg, Place, ResolvedLeg, Station, Trip
 
 
@@ -99,6 +105,20 @@ def _route_color(value: Any, fallback: str = "#2463A8") -> str:
         except ValueError:
             pass
     return fallback
+
+
+def _selected_route_color(tags: dict[str, Any], seed: dict[str, Any]) -> tuple[str, str]:
+    """Choose a trip-line colour and report the provenance of that choice.
+
+    A seed is tied to an explicitly reviewed relation id, so its colour can
+    correct service-level OSM colours (for example a grey local-service tag).
+    Uncatalogued relations continue to use OSM instead of inventing a colour.
+    """
+    if seed.get("color"):
+        return _route_color(seed["color"]), "verified_alias"
+    if tags.get("colour") or tags.get("color"):
+        return _route_color(tags.get("colour") or tags.get("color")), "openstreetmap"
+    return _route_color(None), "default"
 
 
 class HttpCache:
@@ -615,7 +635,7 @@ class OSMRailSource:
         path = graph_path(edges, coordinates, start, end)
 
         seed = self.seed_by_relation.get(relation_id, {})
-        color = _route_color(tags.get("colour") or seed.get("color"))
+        color, color_source = _selected_route_color(tags, seed)
         return ResolvedLeg(
             leg=leg,
             path=path,
@@ -629,6 +649,7 @@ class OSMRailSource:
             details={
                 "direction_validation": direction_validation,
                 "canonical_line": seed.get("canonical"),
+                "color_source": color_source,
                 "osm_name": tags.get("name"),
                 "osm_name_en": tags.get("name:en"),
                 "operator": tags.get("operator:en") or tags.get("operator"),
@@ -836,6 +857,17 @@ class TripResolver:
 
     def resolve_trip(self, trip: Trip) -> list[ResolvedLeg]:
         resolved = [self.resolve_leg(leg, trip.locale) for leg in trip.legs]
+        for item in resolved:
+            distance = polyline_lengths(item.path)[1]
+            item.details.setdefault("distance_meters", round(distance, 1))
+            if item.leg.mode == "walk" and distance >= 10_000:
+                item.details["review_required"] = True
+                reasons = item.details.setdefault("review_reasons", [])
+                if "walking_distance_over_10km" not in reasons:
+                    reasons.append("walking_distance_over_10km")
+                item.notes.append(
+                    f"步行路径长 {distance / 1000:.1f} km，超过 10 km；请检查地点、交通方式和路径是否正确。"
+                )
         for previous, current in zip(resolved, resolved[1:]):
             gap = haversine(previous.path[-1], current.path[0])
             current.details["connection_from_previous_meters"] = round(gap, 1)

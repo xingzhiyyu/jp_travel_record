@@ -9,6 +9,7 @@ from travel_record.cartography import (
     CONTEXT_REGIONS,
     MapContext,
     context_query,
+    fetch_context,
     joined_rings,
 )
 from travel_record.models import Trip, Leg, Place, ResolvedLeg
@@ -183,6 +184,20 @@ class ContextGeometryTests(TestCase):
         with patch("travel_record.cartography.fetch_context", side_effect=DataSourceError("missing")):
             with self.assertRaisesRegex(DataSourceError, "拒绝生成空白底图"):
                 context.draw(Image.new("RGB", (320, 180)), (35.1, 135.75), 14)
+
+    def test_context_query_falls_back_to_second_overpass_endpoint(self) -> None:
+        http = Mock()
+        http.cached.return_value = None
+        http.json.side_effect = [DataSourceError("first unavailable"), {"elements": []}]
+        with patch(
+            "travel_record.cartography.OVERPASS_ENDPOINTS",
+            ("https://first.invalid", "https://second.invalid"),
+        ):
+            self.assertEqual(fetch_context(http, "kansai"), {"elements": []})
+        self.assertEqual(
+            [call.args[0] for call in http.json.call_args_list],
+            ["https://first.invalid", "https://second.invalid"],
+        )
 
 
 class CenterMarkerTests(TestCase):

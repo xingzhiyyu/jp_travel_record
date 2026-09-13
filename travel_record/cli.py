@@ -58,6 +58,14 @@ def main(argv: list[str] | None = None) -> int:
             raise TripFormatError("workers 必须至少为 1")
         output = args.output or args.input.with_suffix(".mp4")
         resolved = resolver.resolve_trip(trip)
+        for index, item in enumerate(resolved, 1):
+            if item.details.get("review_required"):
+                reasons = ", ".join(item.details.get("review_reasons", []))
+                print(
+                    f"警告：第 {index} 段 {item.leg.origin.name} → "
+                    f"{item.leg.destination.name} 需要检查（{reasons}）。",
+                    file=sys.stderr,
+                )
         manifest_path = output.with_suffix(".resolved.json")
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
         manifest = resolved_manifest(trip, resolved)

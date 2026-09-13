@@ -10,6 +10,7 @@ from travel_record.sources import (
     PlaceResolver,
     TripResolver,
     _route_color,
+    _selected_route_color,
 )
 from travel_record.models import Station, Leg, Place, ResolvedLeg, Trip
 
@@ -65,6 +66,21 @@ class StationMatchingTests(TestCase):
         self.assertEqual(_route_color("green"), "#008000")
         self.assertEqual(_route_color("#007ac2"), "#007ac2")
         self.assertEqual(_route_color("not-a-colour"), "#2463A8")
+
+    def test_reviewed_alias_colour_overrides_osm_service_colour(self):
+        self.assertEqual(
+            _selected_route_color(
+                {"colour": "grey"},
+                {"canonical": "Known Line", "color": "#0077CE"},
+            ),
+            ("#0077CE", "verified_alias"),
+        )
+
+    def test_unknown_line_keeps_valid_osm_colour(self):
+        self.assertEqual(
+            _selected_route_color({"colour": "#12ab34"}, {}),
+            ("#12ab34", "openstreetmap"),
+        )
 
     def test_known_line_missing_data_never_falls_back_to_another_line(self):
         source = OSMRailSource(Mock(), Mock())
@@ -148,3 +164,19 @@ class PlaceAndFallbackTests(TestCase):
             result = resolver.resolve_trip(Trip("test", [first_leg, second_leg]))
         self.assertGreater(result[1].details["connection_from_previous_meters"], 300)
         self.assertIn("未自动补画", result[1].notes[-1])
+
+    def test_ten_kilometre_walk_is_marked_for_review(self):
+        with TemporaryDirectory() as directory:
+            resolver = TripResolver(Path(directory))
+            walk = Leg("", "walk", Place("A"), Place("B"), 1)
+            resolved = ResolvedLeg(
+                walk,
+                [(35.0, 135.0), (35.10, 135.0)],
+                "#777",
+                "test",
+            )
+            resolver.resolve_leg = Mock(return_value=resolved)
+            result = resolver.resolve_trip(Trip("test", [walk]))[0]
+        self.assertTrue(result.details["review_required"])
+        self.assertIn("walking_distance_over_10km", result.details["review_reasons"])
+        self.assertIn("超过 10 km", result.notes[-1])

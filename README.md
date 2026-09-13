@@ -38,6 +38,24 @@ uv run travel-record render record.cleaned.txt -o output/record-full-60fps.mp4 -
 
 每次渲染还会生成同名的 `.resolved.json`，其中包含使用到的站名、方向、颜色、线路折线、数据来源，以及北京首都国际机场（PEK）的地理位置。
 
+## 公共数据服务与本地缓存
+
+默认缓存目录是项目内的 `.cache/travel-record/`，可用 `--cache-dir PATH` 改到其他位置。
+地点搜索、OSM 线路 relation、Overpass 查询、步行/驾车路由、地图瓦片和 Natural Earth
+分别存放在不同子目录。缓存文件名是请求方法、完整 URL 和请求正文的 SHA-256；因此只有完全相同的
+请求才能命中，不能把一个大区域的结果自动当成相邻小区域的数据。
+
+正常联网运行会优先复用仍在有效期内的响应。请求更新失败但同一请求已有旧缓存时，程序会使用旧缓存；
+铁路目录、城市轨道、道路和海岸线的 Overpass 查询还会按代码中配置的公共镜像依次尝试。
+没有缓存且所有公共服务均失败时，关键铁路和 silhouette 底图会停止并报告缺少的区域；
+步行、出租车和无密钥公交则可能退回简化线，并把真实原因写入 `.resolved.json`。
+缓存是“按请求保存成功响应”，不是断点续传：一次从未成功的大查询不能从半个响应继续。
+
+跨电脑复用时复制整个 `.cache/travel-record/`，并让解析、海岸线获取和渲染使用同一个
+`--cache-dir`。缓存可能很大、可能过期，也可能包含个人地点和路线请求，已被 Git 忽略，不应提交。
+确认所需数据已成功跑过后，可设置 `TRAVEL_RECORD_OFFLINE=1` 禁止联网；`--resolve-only`
+只预热线路解析数据，不会预热渲染阶段才加载的城市轨道、道路、环境和海岸线。
+
 ## 输入格式
 
 ```text
@@ -72,6 +90,7 @@ route:
 - 已知线路允许在名称后附加 `Osaka-bound`、`方面`、`行き` 等方向说明；解析器仍锁定该线路的内置 relation 集合，不会因后缀转而选择名称相似的其他运营商线路。
 - `basemap: silhouette` 使用旅行地图册风格：暖白陆地、灰蓝水系、浅绿公园与林地、低饱和度主干道路与城市轨道网；少量站名随视野显示。保留线路信息浮层、日本定位图、独立比例尺与署名，不再显示底部行程栏。地图与文字均经过抗锯齿处理。改成 `osm` 可恢复完整浅色道路地图。
 - 城市轨道背景覆盖大阪—神户、京都及东京城区的已获取范围，包含 OSM 收录的运营铁路、地铁、轻轨、电车、单轨与缆索铁路，也包括地下线路。背景轨道采用淡化的线路颜色，实际旅行轨迹保持高亮；未知颜色使用中性色，不编造线路配色。具体范围、轨道数量和数据说明写入 `.resolved.json` 的 `urban_rail_sources`。
+- 实际旅行线路若命中 `line_aliases.json` 中已人工核对的 relation，使用该别名记录的线路色；这可以修正 OSM 把列车种别颜色写到 relation 上的个别情况。未收录线路仍使用有效的 OSM `colour`，两者均无颜色时才使用默认色。选择来源写入 `details.color_source`。城市轨道背景仍以 OSM relation 颜色为准，未知颜色保持中性。
 - 水系与绿地使用 OpenStreetMap 的真实几何，覆盖京阪核心区及东京示例行程所在的市区；非覆盖区不绘制这些细节。定位图中的蓝点表示当前地理位置，主画面的蓝圆圈仍固定在屏幕中心。
 - 京都北部山谷使用较小的环境与道路查询范围，近景补充溪流及 secondary、tertiary、unclassified 道路。标记为 KSJ2 森林规划用途的粗粒度多边形不会用于近景背景。
 - 主干道路优先读取各数据服务的缓存。矢量数据不可用时，从本机已缓存的标准 OSM 瓦片提取道路颜色层作为近似背景（文字处可能有缺口），不会将它用于轨迹寻路；实际采用的来源写入解析文件。
@@ -137,4 +156,5 @@ uv run travel-record catalog -o output/rail-catalog.json
 - 陆地剪影：[Natural Earth](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/)，公有领域。
 - 公交可选数据：[Google Routes API 公交路线](https://developers.google.com/maps/documentation/routes/transit-route)；需要用户自己的 API 密钥和已启用计费的项目。
 - 步行与出租车道路折线：基于 OpenStreetMap 数据的公开路由服务；首次请求会发送该段的两个端点坐标，并被本地缓存。
+- 实际步行路径达到或超过 10 km 时，解析清单会设置 `details.review_required: true` 并记录 `walking_distance_over_10km`，命令行同时输出警告；程序不会擅自删除该段或猜测其他交通方式。
 - 程序遵守 [OpenStreetMap 瓦片使用政策](https://operations.osmfoundation.org/policies/tiles/)，缓存瓦片至少七天，并在视频中保留署名。

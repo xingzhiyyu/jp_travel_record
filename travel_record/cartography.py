@@ -68,15 +68,21 @@ def fetch_context(http: HttpCache, name: str) -> dict:
         )
         if payload:
             return json.loads(payload)
-    return http.json(
-        OVERPASS_ENDPOINTS[0],
-        namespace="overpass-map-context",
-        method="POST",
-        data=encoded,
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-        timeout=100,
-        max_age=30 * 24 * 3600,
-    )
+    last_error = None
+    for endpoint in OVERPASS_ENDPOINTS:
+        try:
+            return http.json(
+                endpoint,
+                namespace="overpass-map-context",
+                method="POST",
+                data=encoded,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                timeout=100,
+                max_age=30 * 24 * 3600,
+            )
+        except DataSourceError as exc:
+            last_error = exc
+    raise DataSourceError(f"无法读取 {name} 地图环境数据：{last_error}")
 
 
 def world_point(lat: float, lon: float) -> tuple[float, float]:

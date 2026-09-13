@@ -74,12 +74,43 @@ uv run python -m travel_record.cli render record.cleaned.txt -o output/checked.m
 距离用 `travel_record.geo.polyline_lengths(path)[1]`，单位为米。
 报告相邻段断点、各类回退数量、异常长步行、折返/远程道岔绕行、端点到轨道吸附偏差。
 每个直线回退必须记录实际原因；离线缓存缺失、服务超时和服务返回空路径不可混成同一备注。
-阈值仅用于提醒，不可自动删除真实绕行。`stations` 可能包含整个线路，不能当作本段全部实际经过站。
+实际路径达到或超过 10 km 的步行段会标记 `walking_distance_over_10km`；必须检查地点和交通方式，
+但阈值只是复核提醒，不能据此自动删除真实的长距离徒步。
+`stations` 可能包含整个线路，不能当作本段全部实际经过站。
 方向验证必须单独进行：核对服务关系的停站顺序、上下行分离轨道、环线、立交及道岔；
 不得用无向图反向寻路成功、端点偏差为零或里程合理宣称实际行驶方向正确。
 检查 `details.direction_validation`：`stop_order_matches` 仅表示停站顺序匹配，
 `track_geometry: unverified` 仍需轨道核对。停站缺失或重复时保持未验证，不猜测；
 明确反向的 PTv2 列车关系会报错，应另找正确方向的关系，不得改成步行绕过错误。
+
+线路颜色不是无条件相信任一来源。选中的 relation 若已存在于 `line_aliases.json`，采用其中人工核对的
+颜色并记录 `details.color_source: verified_alias`；否则使用 OSM relation 的 `colour` 并记录
+`openstreetmap`；两者都没有才用默认色。不要因为灰色本身就判错，发现具体错色时应核对运营方资料，
+再把精确 relation 和颜色加入别名表。城市轨道背景不是当前乘坐线路，仍按 OSM 配色或中性色绘制。
+
+## 2.4 公共服务缓存
+
+所有联网读取都通过 `HttpCache` 落盘，默认根目录为 `.cache/travel-record/`；三个命令均可用
+`--cache-dir PATH` 指定位置。子目录 namespace 区分 `nominatim`、`osm-relations-meta`、
+`osm-relations-full`、`overpass`、`overpass-urban-rail`、`overpass-map-context`、
+`overpass-major-roads`、`overpass-coastline`、`osm-tiles`、步行/驾车路由及 Google Routes 等来源。
+
+缓存键为 `SHA-256(method + URL + request body)`，响应以 `.bin` 保存。查询文本、bbox、镜像 URL
+或请求正文任一变化都会产生新键；它不是按地理范围合并的数据仓库，也不支持下载一半后续传。
+正常模式命中新鲜缓存便不联网；更新请求失败而同键旧文件存在时可退回旧文件。
+Overpass 数据按具体调用设置有效期，主要是 14 或 30 天；关系元数据为 30 天。
+离线模式不检查年龄，但缺少精确键就立即报告缓存缺失。
+
+Overpass 相关代码配置多个公共端点并尽量先检查各镜像缓存；端点仍然都是无 SLA 的公共服务，
+镜像回退不能保证冷缓存的大区域查询成功。城市轨道会优先采用完整缓存，也可采用已有的纯轨道几何
+缓存并让未知线路保持中性色。关键 silhouette 图层在所有镜像失败且没有缓存时中止，避免悄悄输出
+空白底图；路由类来源允许有注明原因的简化线回退。具体采用情况应以 `.resolved.json` 为准。
+
+要把热缓存带到另一台电脑，复制整个缓存根目录并保持 `--cache-dir` 一致；不要只复制一个散列文件，
+因为一次渲染会依赖多个 namespace。缓存包含查询过的地点和端点，且可能体积很大，所以不得提交 Git。
+`--resolve-only` 只获取地点和线路关系，不获取渲染器懒加载的道路、环境、城市轨道与海岸线。
+正式离线渲染前仍应联网渲染沿途代表帧，使所需底图请求实际进入缓存，再用
+`TRAVEL_RECORD_OFFLINE=1` 验证缓存是否完整。
 
 ## 2.5 为新地区获取精细海岸线
 
