@@ -34,7 +34,7 @@ uv run travel-record render example_trip.txt -o output/example-trip.mp4
 uv run travel-record render record.cleaned.txt -o output/record-full-60fps.mp4 --workers 4
 ```
 
-`--workers` 默认为 `1`；Apple Silicon 建议先用 `4`。并行模式会明显提高瞬时功耗和内存占用，但不会改变帧率、画面顺序或动画时间轴。
+`--workers` 默认为 `1`；Apple Silicon 建议先用 `4`（前提是插电），Windows设备可以开到更高，但也要注意内存，一个进程大约700兆内存。并行模式会明显提高瞬时功耗和内存占用，但不会改变帧率、画面顺序或动画时间轴。
 
 每次渲染还会生成同名的 `.resolved.json`，其中包含使用到的站名、方向、颜色、线路折线、数据来源，以及北京首都国际机场（PEK）的地理位置。
 
@@ -80,7 +80,7 @@ route:
 - 也接受紧凑写法：`{线路名,起点,终点;线路名,起点,终点}`。例如
   `{kansai-airport-line,kansai airport,hineno;hanwa-line,hineno,tennoji;osaka-loop-line,tennoji,shin-imamiya}`。
 - 紧凑写法中的连字符会自动变成易读名称。按基础设施线路记录时应在日根野、天王寺分段；若按一班贯通列车记录，可写
-  `{kansai-airport-rapid,kansai airport,shin-imamiya}`。
+  `{kansai-airport-rapid,kansai airport,shin-imamiya}`。（只有部分情况可以，如果openstreetmap没有这个贯通运行的记录，可能会导致AI编造数据）
 - 可写多个途经点：`A -> B -> C` 会自动拆成两段。
 - `bus`、`公交`、`巴士` 都统一显示为 `bus`；`walk`、`步行`、`徒歩` 都统一显示为 `walk`；`taxi`、`出租车`、`タクシー` 显示为 `taxi`。
 - 其他交通段直接显示输入的线路名，例如 `JR Kobe Line`。
@@ -142,7 +142,7 @@ uv run travel-record render trip.txt
 
 ## 线路目录
 
-内置了东海道新干线、JR Kyoto Line、JR Kobe Line、东京地铁银座线和 JR 山手线的常用别名。其他京都—大阪都市圈和东京都市圈线路会从 OpenStreetMap 自动发现。也可以导出当前线路目录：
+大部分的线路会从 OpenStreetMap 自动发现。也可以导出当前线路目录：
 
 ```bash
 uv run travel-record catalog -o output/rail-catalog.json
@@ -158,3 +158,6 @@ uv run travel-record catalog -o output/rail-catalog.json
 - 步行与出租车道路折线：基于 OpenStreetMap 数据的公开路由服务；首次请求会发送该段的两个端点坐标，并被本地缓存。
 - 实际步行路径达到或超过 10 km 时，解析清单会设置 `details.review_required: true` 并记录 `walking_distance_over_10km`，命令行同时输出警告；程序不会擅自删除该段或猜测其他交通方式。
 - 程序遵守 [OpenStreetMap 瓦片使用政策](https://operations.osmfoundation.org/policies/tiles/)，缓存瓦片至少七天，并在视频中保留署名。
+
+## 致谢
+- 感谢ChatGPT5.6 Sol，ChatGPT 6 Astra，GLM5.3FLASH,Gemini 3.8 Flash的帮助
